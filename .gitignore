@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+.swiftpm/
+.build/
+
+# Built app bundles
+*.app
+*.dSYM
+*.ipa
+
+# Local files
+*.xcconfig.local
+*.gpx

@@ -1,0 +1,286 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Choose a device and a location.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle ein Gerät und einen Ort."
+          }
+        }
+      }
+    },
+    "No iPhone connected. Plug it in, unlock it and reload.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein iPhone verbunden. Anschließen, entsperren und neu laden."
+          }
+        }
+      }
+    },
+    "Invalid coordinates. Format: 52.516275, 13.377704": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültige Koordinaten. Format: 52.516275, 13.377704"
+          }
+        }
+      }
+    },
+    "Nothing found for “%@”.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts gefunden für „%@“."
+          }
+        }
+      }
+    },
+    "Search failed: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche fehlgeschlagen: %@"
+          }
+        }
+      }
+    },
+    "Location set: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standort gesetzt: %@"
+          }
+        }
+      }
+    },
+    "Simulation stopped. Your iPhone uses its real location again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulation beendet. Dein iPhone nutzt wieder den echten Standort."
+          }
+        }
+      }
+    },
+    "unknown": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unbekannt"
+          }
+        }
+      }
+    },
+    "Error: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehler: %@"
+          }
+        }
+      }
+    },
+    "Target": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ziel"
+          }
+        }
+      }
+    },
+    "Device": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerät"
+          }
+        }
+      }
+    },
+    "Reload devices": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geräte neu laden"
+          }
+        }
+      }
+    },
+    "Address": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse"
+          }
+        }
+      }
+    },
+    "Search address or place": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse oder Ort suchen"
+          }
+        }
+      }
+    },
+    "Coordinates": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koordinaten"
+          }
+        }
+      }
+    },
+    "Or click on the map.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oder auf die Karte klicken."
+          }
+        }
+      }
+    },
+    "Set Location": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standort setzen"
+          }
+        }
+      }
+    },
+    "Reset": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurücksetzen"
+          }
+        }
+      }
+    },
+    "Favorites": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten"
+          }
+        }
+      }
+    },
+    "Save current location (name = search field)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuellen Ort speichern (Name = Suchfeld)"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        }
+      }
+    },
+    "Help": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hilfe"
+          }
+        }
+      }
+    },
+    "Sets a simulated GPS location on your iPhone. It applies to the whole device, so every app sees it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setzt einen simulierten GPS-Standort auf deinem iPhone. Er gilt für das ganze Gerät, also sieht ihn jede App."
+          }
+        }
+      }
+    },
+    "Connect your iPhone, unlock it and turn on Developer Mode.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone verbinden, entsperren und den Entwicklermodus einschalten."
+          }
+        }
+      }
+    },
+    "Pick a place: click the map, search an address or paste coordinates.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ort wählen: auf die Karte klicken, Adresse suchen oder Koordinaten einfügen."
+          }
+        }
+      }
+    },
+    "Press “Set Location”.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Standort setzen“ drücken."
+          }
+        }
+      }
+    },
+    "“Reset” brings back your real location. The simulation also ends when the connection is lost.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Zurücksetzen“ bringt den echten Standort zurück. Die Simulation endet auch, wenn die Verbindung getrennt wird."
+          }
+        }
+      }
+    },
+    "Requires Xcode (uses Apple's devicectl). Only use this on your own devices and in line with the terms of the apps you use.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benötigt Xcode (nutzt Apples devicectl). Nur auf eigenen Geräten und im Rahmen der Nutzungsbedingungen der verwendeten Apps einsetzen."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
