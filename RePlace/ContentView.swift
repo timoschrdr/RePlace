@@ -121,12 +121,15 @@ struct ContentView: View {
                     } else {
                         routeSection
                     }
-                    actionRow
                     favoritesSection
                 }
                 .padding(20)
             }
             .scrollIndicators(.hidden)
+            // Pinned below the scrolling content so the main buttons are always visible.
+            actionRow
+                .padding(.horizontal, 20)
+                .padding(.top, 4)
             helpBar
         }
     }

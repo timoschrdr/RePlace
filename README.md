@@ -12,7 +12,7 @@ A small macOS app that sets a simulated GPS location on your iPhone – pick a p
 The app is available in English and German.
 
 <p align="center">
-  <img src="docs/screenshot.png" width="720" alt="RePlace. on macOS: a sidebar with device, address, coordinates and favorites next to a map of Berlin">
+  <img src="docs/screenshot.png" width="720" alt="RePlace. in route mode: a floating sidebar with device, mode switch, waypoints, speed and the Start Route and Reset buttons next to a map of Berlin with a red route">
 </p>
 
 ## How it works
