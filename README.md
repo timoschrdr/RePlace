@@ -19,6 +19,8 @@ The app is available in English and German.
 
 RePlace. is a thin SwiftUI front end for Apple's own `xcrun devicectl device simulate location` command (the same mechanism Xcode uses for "Simulate Location"). It does not jailbreak or modify the iPhone, and it needs no third-party tools.
 
+For routes, the app walks along the path itself and sends a new position about once per second, with a step length that matches the chosen speed. At the end of the route the iPhone simply stays at the last point.
+
 ## Requirements
 
 - macOS 27 and Xcode (including its command line tools) installed
@@ -35,10 +37,21 @@ If you want to ship your own build, change the bundle identifier (`de.timoschroe
 
 ## Usage
 
+**Single location**
+
 1. Choose your iPhone in the sidebar.
 2. Click the map, search an address or enter `latitude, longitude`.
 3. Press **Set Location**.
 4. Press **Reset** to return to the real location. The simulation also ends when the connection to the Mac is lost.
+
+**Route**
+
+1. Switch the sidebar to **Route**.
+2. Click the map, search an address or choose a favorite to add waypoints. Remove a waypoint with its ✕ button.
+3. Choose a speed (slider or the walking, bike and car presets). With **Follow roads** on, the path follows streets between the waypoints. With it off, the path is a straight line.
+4. Press **Start Route**. The iPhone moves along the route and stops at the last waypoint.
+5. **Pause** halts the iPhone where it is, and **Continue** goes on from exactly that point. You can change the speed while paused. Waypoints are locked while a route runs or is paused.
+6. **Reset** returns the iPhone to its real location.
 
 Favorites are stored locally in the app's preferences on your Mac.
 
@@ -46,7 +59,7 @@ Favorites are stored locally in the app's preferences on your Mac.
 
 RePlace. does not collect, store or send any personal data to the developer. It has no accounts, analytics, advertising or tracking, and it never reads your real location.
 
-- **Map and address search:** The map tiles and the address search are provided by Apple Maps (MapKit). When you search, your search text is sent to Apple and handled under [Apple's privacy policy](https://www.apple.com/legal/privacy/).
+- **Map, address search and routes:** The map tiles, the address search and the road routing are provided by Apple Maps (MapKit). When you search, your search text is sent to Apple. When **Follow roads** is on, the coordinates of your waypoints are sent to Apple to calculate the route. Both are handled under [Apple's privacy policy](https://www.apple.com/legal/privacy/). With **Follow roads** off, no route requests are made.
 - **Your iPhone:** The coordinates you choose are sent only to the iPhone you select, through Apple's own `devicectl` tool on your Mac.
 - **Stored on your Mac:** Your favorites are saved locally in the app's preferences and are never uploaded. Delete the app's preferences to remove them.
 

@@ -67,6 +67,22 @@ enum DeviceCtl {
         .sorted { ($0.connected ? 0 : 1, $0.name) < ($1.connected ? 0 : 1, $1.name) }
     }
 
+    /// `devicectl` sometimes fails once with a transient XPC error ("remoteService was
+    /// unavailable"). Retrying a couple of times makes long routes robust.
+    nonisolated static func retrying(
+        attempts: Int = 3,
+        _ operation: () async -> Result
+    ) async -> Result {
+        var result = await operation()
+        var remaining = attempts - 1
+        while !result.ok, remaining > 0, !Task.isCancelled {
+            try? await Task.sleep(for: .milliseconds(700))
+            result = await operation()
+            remaining -= 1
+        }
+        return result
+    }
+
     nonisolated static func setLocation(device: String, latitude: Double, longitude: Double) async -> Result {
         await run([
             "device", "simulate", "location", "coordinate",

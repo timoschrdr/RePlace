@@ -6,9 +6,19 @@ extension Color {
     static let brandRed = Color(red: 0.90, green: 0.16, blue: 0.20)
 }
 
+private extension View {
+    /// The shared look of text fields and pickers: a fully rounded, softly filled pill.
+    func pill() -> some View {
+        padding(.horizontal, 14)
+            .padding(.vertical, 9)
+            .background(.quaternary, in: .capsule)
+    }
+}
+
 struct ContentView: View {
     @State private var model = AppModel()
     @State private var showHelp = false
+    @Namespace private var modeNamespace
     @State private var position: MapCameraPosition = .region(
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 52.5163, longitude: 13.3777),
@@ -37,6 +47,15 @@ struct ContentView: View {
         .navigationTitle("RePlace.")
         .tint(.brandRed)
         .task { await model.refreshDevices() }
+        .onChange(of: model.movingPosition) { _, new in
+            guard let new else { return }
+            withAnimation(.linear(duration: 0.9)) {
+                position = .region(MKCoordinateRegion(
+                    center: new.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
+                ))
+            }
+        }
         .onChange(of: model.spot) { _, new in
             guard let new else { return }
             withAnimation(.smooth) {
@@ -53,9 +72,26 @@ struct ContentView: View {
     private var map: some View {
         MapReader { proxy in
             Map(position: $position) {
-                if let spot = model.spot {
+                if model.mode == .point, let spot = model.spot {
                     Marker("Target", systemImage: "mappin", coordinate: spot.coordinate)
                         .tint(Color.brandRed)
+                }
+                if model.routePath.count > 1 {
+                    MapPolyline(coordinates: model.routePath.map(\.coordinate))
+                        .stroke(Color.brandRed, lineWidth: 5)
+                }
+                ForEach(Array(model.waypoints.enumerated()), id: \.offset) { index, waypoint in
+                    Marker("\(index + 1)", monogram: Text("\(index + 1)"), coordinate: waypoint.coordinate)
+                        .tint(Color.brandRed)
+                }
+                if let position = model.movingPosition {
+                    Annotation("", coordinate: position.coordinate) {
+                        Circle()
+                            .fill(.blue)
+                            .frame(width: 16, height: 16)
+                            .overlay(Circle().stroke(.white, lineWidth: 3))
+                            .shadow(radius: 2)
+                    }
                 }
             }
             .mapControls {
@@ -65,7 +101,7 @@ struct ContentView: View {
             }
             .onTapGesture(coordinateSpace: .local) { point in
                 if let coordinate = proxy.convert(point, from: .local) {
-                    model.spot = Spot(latitude: coordinate.latitude, longitude: coordinate.longitude)
+                    model.mapTapped(Spot(latitude: coordinate.latitude, longitude: coordinate.longitude))
                 }
             }
         }
@@ -78,9 +114,14 @@ struct ContentView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     deviceSection
+                    modeSection
                     searchSection
-                    coordinateSection
-                    actionSection
+                    if model.mode == .point {
+                        coordinateSection
+                    } else {
+                        routeSection
+                    }
+                    actionRow
                     favoritesSection
                 }
                 .padding(20)
@@ -119,8 +160,48 @@ struct ContentView: View {
                 .tint(.secondary)
                 .help("Reload devices")
             }
+            .pill()
         }
     }
+
+    // MARK: Modus
+
+    private var modeSection: some View {
+        HStack(spacing: 0) {
+            modeButton("Point", .point)
+            modeButton("Route", .route)
+        }
+        .padding(3)
+        .background(.quaternary, in: .capsule)
+        .frame(maxWidth: .infinity)
+        .opacity(model.isRouteActive ? 0.5 : 1)
+    }
+
+    private func modeButton(_ title: LocalizedStringKey, _ value: TargetMode) -> some View {
+        let selected = model.mode == value
+        return Button {
+            withAnimation(.snappy) { model.mode = value }
+        } label: {
+            Text(title)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(selected ? Color.white : Color.primary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 7)
+                .background {
+                    if selected {
+                        Capsule()
+                            .fill(Color.brandRed)
+                            .matchedGeometryEffect(id: "modeBackground", in: modeNamespace)
+                    }
+                }
+                .contentShape(.capsule)
+        }
+        .buttonStyle(.plain)
+        .disabled(model.isRouteActive)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    // MARK: Suche
 
     private var searchSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -132,9 +213,7 @@ struct ContentView: View {
                     .textFieldStyle(.plain)
                     .onSubmit { Task { await model.search() } }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(.quaternary, in: .rect(cornerRadius: 10))
+            .pill()
 
             if !model.searchResults.isEmpty {
                 VStack(spacing: 2) {
@@ -152,14 +231,15 @@ struct ContentView: View {
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 7)
                             .contentShape(.rect)
                         }
                         .buttonStyle(.plain)
                     }
                 }
-                .background(.quaternary.opacity(0.6), in: .rect(cornerRadius: 10))
+                .padding(.vertical, 4)
+                .background(.quaternary.opacity(0.6), in: .rect(cornerRadius: 20))
             }
         }
     }
@@ -175,37 +255,188 @@ struct ContentView: View {
                     .font(.system(.body, design: .monospaced))
                     .onSubmit { model.applyCoordText() }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(.quaternary, in: .rect(cornerRadius: 10))
+            .pill()
             Text("Or click on the map.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .padding(.leading, 14)
         }
     }
 
-    private var actionSection: some View {
-        VStack(spacing: 8) {
-            Button {
-                model.applyCoordText()
-                Task { await model.apply() }
-            } label: {
-                Text("Set Location").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(model.isBusy || model.selectedDeviceID == nil || model.coordText.isEmpty)
+    // MARK: Route
 
+    private var routeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                sectionTitle("Route")
+                Spacer()
+                if !model.waypoints.isEmpty {
+                    Button("Clear") { model.clearWaypoints() }
+                        .buttonStyle(.borderless)
+                        .font(.caption)
+                        .disabled(model.isRouteActive)
+                }
+            }
+
+            if model.waypoints.isEmpty {
+                Text("Click the map or pick a place to add waypoints. The iPhone moves along them in order and stops at the last one.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 14)
+            } else {
+                VStack(spacing: 4) {
+                    ForEach(Array(model.waypoints.enumerated()), id: \.offset) { index, waypoint in
+                        HStack(spacing: 8) {
+                            Text("\(index + 1)")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 20, height: 20)
+                                .background(Color.brandRed, in: .circle)
+                            Text(AppModel.format(waypoint))
+                                .font(.system(.caption, design: .monospaced))
+                            Spacer()
+                            Button {
+                                model.removeWaypoint(at: index)
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.borderless)
+                            .disabled(model.isRouteActive)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(.quaternary.opacity(0.6), in: .capsule)
+                    }
+                }
+            }
+
+            Toggle("Follow roads", isOn: $model.followRoads)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .disabled(model.isRouteActive)
+                .padding(.horizontal, 14)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Speed: \(Int(model.speedKmh)) km/h")
+                    .font(.callout)
+                    .padding(.horizontal, 14)
+                Slider(value: $model.speedKmh, in: 1...130, step: 1)
+                    .disabled(model.isMoving)
+                    .padding(.horizontal, 14)
+                HStack(spacing: 6) {
+                    speedPreset("figure.walk", 5)
+                    speedPreset("bicycle", 15)
+                    speedPreset("car.fill", 50)
+                }
+            }
+
+            if model.waypoints.count >= 2 {
+                HStack(spacing: 6) {
+                    if model.isCalculatingRoute {
+                        ProgressView().controlSize(.small)
+                        Text("Calculating route…")
+                    } else {
+                        Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                        Text("\(distanceText) · \(durationText)")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 14)
+            }
+
+            if model.isRouteActive || model.progress > 0 {
+                ProgressView(value: model.progress)
+                    .padding(.horizontal, 14)
+            }
+        }
+    }
+
+    private func speedPreset(_ symbol: String, _ kmh: Double) -> some View {
+        Button {
+            model.speedKmh = kmh
+        } label: {
+            Label("\(Int(kmh)) km/h", systemImage: symbol)
+                .font(.caption)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
+        .controlSize(.small)
+        .disabled(model.isMoving)
+    }
+
+    private var distanceText: String {
+        Measurement(value: model.routeDistance, unit: UnitLength.meters)
+            .formatted(.measurement(width: .abbreviated, usage: .road))
+    }
+
+    private var durationText: String {
+        Duration.seconds(Int(model.routeDuration))
+            .formatted(.units(allowed: [.hours, .minutes, .seconds], width: .abbreviated, maximumUnitCount: 2))
+    }
+
+    // MARK: Aktionen
+
+    /// Main action and Reset side by side, the same in both modes.
+    private var actionRow: some View {
+        HStack(spacing: 8) {
+            primaryButton
             Button {
                 Task { await model.reset() }
             } label: {
-                Text("Reset").frame(maxWidth: .infinity)
+                Text("Reset")
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
+            .buttonBorderShape(.capsule)
             .controlSize(.large)
             .disabled(model.isBusy || model.selectedDeviceID == nil)
         }
     }
+
+    @ViewBuilder
+    private var primaryButton: some View {
+        if model.mode == .point {
+            actionButton("Set Location") {
+                model.applyCoordText()
+                Task { await model.apply() }
+            }
+            .disabled(model.isBusy || model.selectedDeviceID == nil || model.coordText.isEmpty)
+        } else if model.isMoving {
+            actionButton("Pause") {
+                Task { await model.pauseRoute() }
+            }
+        } else if model.isPaused {
+            actionButton("Continue") { model.startRoute() }
+                .disabled(model.isBusy || model.selectedDeviceID == nil)
+        } else {
+            actionButton("Start Route") { model.startRoute() }
+                .disabled(
+                    model.isBusy || model.selectedDeviceID == nil
+                        || model.waypoints.count < 2 || model.isCalculatingRoute
+                )
+        }
+    }
+
+    private func actionButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.capsule)
+        .controlSize(.large)
+    }
+
+    // MARK: Favoriten
 
     private var favoritesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -224,7 +455,7 @@ struct ContentView: View {
             VStack(spacing: 2) {
                 ForEach(model.favorites) { favorite in
                     Button {
-                        model.spot = favorite.spot
+                        model.select(favorite.spot)
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "star.fill")
@@ -233,14 +464,14 @@ struct ContentView: View {
                             Text(favorite.name).lineLimit(1)
                             Spacer()
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .contentShape(.rect)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .contentShape(.capsule)
                     }
                     .buttonStyle(.plain)
                     .background(
                         model.spot == favorite.spot ? Color.accentColor.opacity(0.18) : .clear,
-                        in: .rect(cornerRadius: 8)
+                        in: .capsule
                     )
                     .contextMenu {
                         Button("Delete", role: .destructive) { model.removeFavorite(favorite) }
@@ -278,7 +509,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 8) {
                 helpRow("1.circle.fill", "Connect your iPhone, unlock it and turn on Developer Mode.")
                 helpRow("2.circle.fill", "Pick a place: click the map, search an address or paste coordinates.")
-                helpRow("3.circle.fill", "Press “Set Location”.")
+                helpRow("3.circle.fill", "Press “Set Location”. For a moving route, switch to “Route”, add waypoints and press “Start Route”. “Pause” stops where you are, “Continue” goes on from there.")
                 helpRow("arrow.uturn.backward.circle.fill", "“Reset” brings back your real location. The simulation also ends when the connection is lost.")
             }
             Divider()
@@ -305,7 +536,7 @@ struct ContentView: View {
     private var statusPill: some View {
         HStack(spacing: 8) {
             Circle()
-                .fill(model.isSimulating ? Color.brandRed : Color.secondary.opacity(0.5))
+                .fill(statusColor)
                 .frame(width: 8, height: 8)
             Text(model.status)
                 .font(.callout)
@@ -316,5 +547,10 @@ struct ContentView: View {
         .glassEffect(.regular, in: .capsule)
         .padding(.bottom, 20)
         .padding(.leading, 344)
+    }
+
+    private var statusColor: Color {
+        if model.isPaused { return .orange }
+        return model.isSimulating ? Color.brandRed : Color.secondary.opacity(0.5)
     }
 }

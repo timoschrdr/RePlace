@@ -251,16 +251,6 @@
         }
       }
     },
-    "Press “Set Location”.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "„Standort setzen“ drücken."
-          }
-        }
-      }
-    },
     "“Reset” brings back your real location. The simulation also ends when the connection is lost.": {
       "localizations": {
         "de": {
@@ -277,6 +267,166 @@
           "stringUnit": {
             "state": "translated",
             "value": "Benötigt Xcode (nutzt Apples devicectl). Nur auf eigenen Geräten und im Rahmen der Nutzungsbedingungen der verwendeten Apps einsetzen."
+          }
+        }
+      }
+    },
+    "Mode": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modus"
+          }
+        }
+      }
+    },
+    "Point": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Punkt"
+          }
+        }
+      }
+    },
+    "Route": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route"
+          }
+        }
+      }
+    },
+    "Clear": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leeren"
+          }
+        }
+      }
+    },
+    "Click the map or pick a place to add waypoints. The iPhone moves along them in order and stops at the last one.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klicke auf die Karte oder wähle einen Ort, um Wegpunkte zu setzen. Das iPhone bewegt sich der Reihe nach daran entlang und bleibt am letzten stehen."
+          }
+        }
+      }
+    },
+    "Follow roads": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Straßen folgen"
+          }
+        }
+      }
+    },
+    "Speed: %lld km/h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tempo: %lld km/h"
+          }
+        }
+      }
+    },
+    "Calculating route…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route wird berechnet …"
+          }
+        }
+      }
+    },
+    "Start Route": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route starten"
+          }
+        }
+      }
+    },
+    "Could not calculate roads. Using straight lines instead.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Straßen konnten nicht berechnet werden. Stattdessen gerade Linien."
+          }
+        }
+      }
+    },
+    "Route finished. Your iPhone stays at the end point.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route beendet. Dein iPhone bleibt am Endpunkt stehen."
+          }
+        }
+      }
+    },
+    "Press “Set Location”. For a moving route, switch to “Route”, add waypoints and press “Start Route”. “Pause” stops where you are, “Continue” goes on from there.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Standort setzen“ drücken. Für eine bewegte Route auf „Route“ wechseln, Wegpunkte setzen und „Route starten“ drücken. „Pause“ hält an, „Fortsetzen“ geht von dort aus weiter."
+          }
+        }
+      }
+    },
+    "Pause": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortsetzen"
+          }
+        }
+      }
+    },
+    "Route paused. Your iPhone stays at the last position.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route pausiert. Dein iPhone bleibt an der letzten Position."
+          }
+        }
+      }
+    },
+    "Moving along the route: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unterwegs auf der Route: %@"
           }
         }
       }
