@@ -57,7 +57,7 @@ Favorites are stored locally in the app's preferences on your Mac.
 
 ## Settings
 
-**RePlace. > Settings…** (⌘,) in the menu bar lets you choose the app icon: the default **Raccoon** or an alternative **Pin**. macOS has no official alternate app icon feature, so the Pin changes the Dock icon while the app is running and is remembered for the next launch. The icon in Finder and in the Applications folder always stays the Raccoon. The artwork is hand-drawn vector art: the layers of the Raccoon are in [docs/art/raccoon](docs/art/raccoon) and the Pin icon in [docs/art/PinIcon.icon](docs/art/PinIcon.icon).
+**RePlace. > Settings…** (⌘,) in the menu bar lets you choose the app icon: the default **Raccoon** or an alternative **Pin**. macOS has no official alternate app icon feature, so the Pin changes the Dock icon while the app is running and is remembered for the next launch. The icon in Finder and in the Applications folder always stays the Raccoon. The Raccoon icon is in [RePlace/AppIcon.icon](RePlace/AppIcon.icon). The source of the Pin icon is kept in [docs/art/PinIcon.icon](docs/art/PinIcon.icon), and an earlier hand-drawn raccoon draft in [docs/art/raccoon](docs/art/raccoon).
 
 ## Privacy
 
@@ -70,6 +70,10 @@ RePlace. does not collect, store or send any personal data to the developer. It 
 ## Responsible use
 
 Use RePlace. only on your own devices, for development, testing and privacy purposes. Many apps and online services forbid faking your location in their terms of use and may suspend accounts that do so. You are responsible for how you use this tool. The software is provided as is, without warranty (see [LICENSE](LICENSE)).
+
+## Credits
+
+The raccoon illustration used for the app icon was generated with ChatGPT (OpenAI). The background was removed and the image was cropped to fit the icon. The Pin icon and the other artwork in this repository were created for this project.
 
 ## License
 

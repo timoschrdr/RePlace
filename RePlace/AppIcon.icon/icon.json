@@ -10,7 +10,7 @@
       "appearance": "dark",
       "value": {
         "linear-gradient": [
-          "srgb:0.21000,0.19000,0.24000,1.00000",
+          "srgb:0.22000,0.19000,0.24000,1.00000",
           "srgb:0.07000,0.06000,0.09000,1.00000"
         ]
       }
@@ -21,47 +21,14 @@
       "layers": [
         {
           "glass": false,
-          "image-name": "head.svg",
-          "name": "head"
+          "image-name": "raccoon.png",
+          "name": "raccoon"
         }
       ],
       "shadow": {
         "kind": "neutral",
         "opacity": 0.4
       },
-      "translucency": {
-        "enabled": false,
-        "value": 0
-      },
-      "specular": false
-    },
-    {
-      "layers": [
-        {
-          "glass": false,
-          "image-name": "body.svg",
-          "name": "body"
-        }
-      ],
-      "shadow": {
-        "kind": "neutral",
-        "opacity": 0.4
-      },
-      "translucency": {
-        "enabled": false,
-        "value": 0
-      },
-      "specular": false
-    },
-    {
-      "layers": [
-        {
-          "glass": false,
-          "image-name": "tail.svg",
-          "name": "tail"
-        }
-      ],
-      "specular": false,
       "translucency": {
         "enabled": false,
         "value": 0
