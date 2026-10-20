@@ -55,6 +55,10 @@ If you want to ship your own build, change the bundle identifier (`de.timoschroe
 
 Favorites are stored locally in the app's preferences on your Mac.
 
+## Settings
+
+**RePlace. > Settings…** (⌘,) in the menu bar lets you choose the app icon: the default **Raccoon** or an alternative **Pin**. macOS has no official alternate app icon feature, so the Pin changes the Dock icon while the app is running and is remembered for the next launch. The icon in Finder and in the Applications folder always stays the Raccoon. The artwork is hand-drawn vector art: the layers of the Raccoon are in [docs/art/raccoon](docs/art/raccoon) and the Pin icon in [docs/art/PinIcon.icon](docs/art/PinIcon.icon).
+
 ## Privacy
 
 RePlace. does not collect, store or send any personal data to the developer. It has no accounts, analytics, advertising or tracking, and it never reads your real location.

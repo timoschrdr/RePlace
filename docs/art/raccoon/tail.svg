@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+  <linearGradient id="furG" gradientUnits="userSpaceOnUse" x1="472" y1="215" x2="712" y2="1040">
+    <stop offset="0" stop-color="#B7C2D2"/><stop offset="0.42" stop-color="#9097B4"/><stop offset="0.78" stop-color="#7A5F9A"/><stop offset="1" stop-color="#8B4F86"/>
+  </linearGradient>
+  <linearGradient id="tailG" gradientUnits="userSpaceOnUse" x1="292" y1="255" x2="492" y2="1040">
+    <stop offset="0" stop-color="#C4CEDC"/><stop offset="0.5" stop-color="#A3A9C6"/><stop offset="1" stop-color="#8F78B0"/>
+  </linearGradient>
+  <linearGradient id="tailShade" gradientUnits="userSpaceOnUse" x1="292" y1="0" x2="549" y2="0">
+    <stop offset="0" stop-color="#3A2A5E" stop-opacity="0"/><stop offset="1" stop-color="#3A2A5E" stop-opacity="0.42"/>
+  </linearGradient>
+  <linearGradient id="dark" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#2A2245"/><stop offset="1" stop-color="#52417B"/></linearGradient>
+  <linearGradient id="earDark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A3E72"/><stop offset="1" stop-color="#33294F"/></linearGradient>
+  <linearGradient id="earIn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F8E6E6"/><stop offset="1" stop-color="#D2AEC0"/></linearGradient>
+  <linearGradient id="cream" x1="0.2" y1="0" x2="0.7" y2="1"><stop offset="0" stop-color="#FFF6EA"/><stop offset="1" stop-color="#EAD3D4"/></linearGradient>
+  <linearGradient id="stripe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2F2750" stop-opacity="0"/><stop offset="0.4" stop-color="#2F2750" stop-opacity="0.85"/><stop offset="1" stop-color="#3B3160"/></linearGradient>
+  <linearGradient id="eye" x1="0.2" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#8B5FD0"/><stop offset="0.45" stop-color="#3A1F78"/><stop offset="1" stop-color="#120A2C"/></linearGradient>
+  <path id="tailShape" d="M 345.9 1266.6 C 185.4 1202.4 110.5 1009.8 142.6 870.7 C 169.3 763.7 244.2 699.5 265.6 613.9 C 273.1 560.4 287.0 506.9 308.4 453.4 C 345.9 506.9 431.5 571.1 485.0 656.7 C 527.8 753.0 485.0 838.6 517.1 945.6 C 538.5 1031.2 559.9 1159.6 592.0 1266.6 Z"/>
+  <clipPath id="tailClip"><use href="#tailShape"/></clipPath>
+  <clipPath id="bodyClip"><path d="M 495.7 560.4 C 431.5 592.5 382.3 678.1 371.6 795.8 C 363.0 945.6 375.9 1116.8 388.7 1266.6 L 953.7 1266.6 C 945.1 1074.0 932.3 902.8 908.7 791.5 C 883.0 673.8 829.5 592.5 767.5 558.3 Z"/></clipPath>
+</defs><use href="#tailShape" fill="url(#tailG)"/><g clip-path="url(#tailClip)" fill="none" stroke="#4A3772" stroke-linecap="butt"><path d="M 14 539 Q 292 378 613 518" stroke-width="257"/><path d="M 14 729 Q 292 563 613 708" stroke-width="58"/><path d="M 14 856 Q 292 685 613 834" stroke-width="66"/><path d="M 14 995 Q 292 819 613 973" stroke-width="77"/><path d="M 14 1151 Q 292 971 613 1130" stroke-width="90"/></g><g clip-path="url(#tailClip)"><rect x="0" y="0" width="1024" height="1024" fill="url(#tailShade)"/></g></svg>

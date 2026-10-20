@@ -430,6 +430,46 @@
           }
         }
       }
+    },
+    "App Icon": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-Symbol"
+          }
+        }
+      }
+    },
+    "Pin": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nadel"
+          }
+        }
+      }
+    },
+    "Raccoon": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waschbär"
+          }
+        }
+      }
+    },
+    "Changes the icon in the Dock while RePlace. is running. The icon in Finder and in the Applications folder stays the same.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändert das Symbol im Dock, solange RePlace. läuft. Das Symbol im Finder und im Programme-Ordner bleibt gleich."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
