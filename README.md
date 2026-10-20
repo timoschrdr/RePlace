@@ -57,7 +57,7 @@ Favorites are stored locally in the app's preferences on your Mac.
 
 ## Settings
 
-**RePlace. > Settings…** (⌘,) in the menu bar lets you choose the app icon: the default **Raccoon** or an alternative **Pin**. macOS has no official alternate app icon feature, so the Pin changes the Dock icon while the app is running and is remembered for the next launch. The icon in Finder and in the Applications folder always stays the Raccoon. The Raccoon icon is in [RePlace/AppIcon.icon](RePlace/AppIcon.icon). The source of the Pin icon is kept in [docs/art/PinIcon.icon](docs/art/PinIcon.icon), and an earlier hand-drawn raccoon draft in [docs/art/raccoon](docs/art/raccoon).
+**RePlace. > Settings…** (⌘,) in the menu bar lets you choose the app icon: the default **Raccoon** or an alternative **Pin**. macOS has no official alternate app icon feature, so the Pin changes the Dock icon while the app is running and is remembered for the next launch. The icon in Finder and in the Applications folder always stays the Raccoon. The Raccoon icon is in [RePlace/AppIcon.icon](RePlace/AppIcon.icon). The source of the Pin icon is kept in [docs/art/PinIcon.icon](docs/art/PinIcon.icon).
 
 ## Privacy
 

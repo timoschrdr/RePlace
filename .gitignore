@@ -18,3 +18,7 @@ xcuserdata/
 # Local files
 *.xcconfig.local
 *.gpx
+
+# Release packages
+release/
+*.zip
