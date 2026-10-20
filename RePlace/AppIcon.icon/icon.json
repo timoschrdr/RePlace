@@ -1,34 +1,27 @@
 {
   "fill": {
-    "linear-gradient": [
-      "srgb:1.00000,0.27000,0.25000,1.00000",
-      "srgb:0.80000,0.05000,0.16000,1.00000"
-    ]
+    "solid": "srgb:0.5,0.4,0.4,1.0"
   },
-  "fill-specializations": [
-    {
-      "appearance": "dark",
-      "value": {
-        "linear-gradient": [
-          "srgb:0.22000,0.19000,0.24000,1.00000",
-          "srgb:0.07000,0.06000,0.09000,1.00000"
-        ]
-      }
-    }
-  ],
   "groups": [
     {
       "layers": [
         {
           "glass": false,
-          "image-name": "raccoon.png",
-          "name": "raccoon"
+          "image-name": "art-light.png",
+          "name": "light",
+          "hidden-specializations": [
+            {
+              "appearance": "dark",
+              "value": true
+            }
+          ]
+        },
+        {
+          "glass": false,
+          "image-name": "art-dark.png",
+          "name": "dark"
         }
       ],
-      "shadow": {
-        "kind": "neutral",
-        "opacity": 0.4
-      },
       "translucency": {
         "enabled": false,
         "value": 0

@@ -470,6 +470,16 @@
           }
         }
       }
+    },
+    "Grey Raccoon": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grauer Waschbär"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

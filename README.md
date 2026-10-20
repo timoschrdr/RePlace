@@ -57,7 +57,7 @@ Favorites are stored locally in the app's preferences on your Mac.
 
 ## Settings
 
-**RePlace. > Settings…** (⌘,) in the menu bar lets you choose the app icon: the default **Raccoon** or an alternative **Pin**. macOS has no official alternate app icon feature, so the Pin changes the Dock icon while the app is running and is remembered for the next launch. The icon in Finder and in the Applications folder always stays the Raccoon. The Raccoon icon is in [RePlace/AppIcon.icon](RePlace/AppIcon.icon). The source of the Pin icon is kept in [docs/art/PinIcon.icon](docs/art/PinIcon.icon).
+**RePlace. > Settings…** (⌘,) in the menu bar lets you choose the app icon: the default **Raccoon** or one of the alternatives, the **Grey Raccoon** and the **Pin**. macOS has no official alternate app icon feature, so an alternative icon changes the Dock icon while the app is running and is remembered for the next launch. The icon in Finder and in the Applications folder always stays the Raccoon. The Raccoon icon is in [RePlace/AppIcon.icon](RePlace/AppIcon.icon). The sources of the alternative icons are kept in [docs/art/GrayRaccoon.icon](docs/art/GrayRaccoon.icon) and [docs/art/PinIcon.icon](docs/art/PinIcon.icon).
 
 ## Privacy
 
@@ -73,7 +73,7 @@ Use RePlace. only on your own devices, for development, testing and privacy purp
 
 ## Credits
 
-The raccoon illustration used for the app icon was generated with ChatGPT (OpenAI). The background was removed and the image was cropped to fit the icon. The Pin icon and the other artwork in this repository were created for this project.
+The raccoon illustrations used for the app icons (the default Raccoon and the Grey Raccoon) were generated with ChatGPT (OpenAI). The backgrounds were removed and the images were cropped to fit the icons. The Pin icon and the other artwork in this repository were created for this project.
 
 ## License
 

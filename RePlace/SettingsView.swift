@@ -10,7 +10,7 @@ struct SettingsView: View {
             Text("App Icon")
                 .font(.headline)
 
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 ForEach(AppIconChoice.allCases) { option in
                     card(for: option)
                 }
@@ -22,7 +22,7 @@ struct SettingsView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(24)
-        .frame(width: 400)
+        .frame(width: 480)
         .tint(.brandRed)
         .onChange(of: choice) { AppIcon.apply() }
     }
@@ -36,11 +36,13 @@ struct SettingsView: View {
                 Image(option.imageName(dark: colorScheme == .dark))
                     .resizable()
                     .interpolation(.high)
-                    .frame(width: 104, height: 104)
+                    .frame(width: 100, height: 100)
                 Text(option.title)
                     .font(.callout.weight(selected ? .semibold : .regular))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2, reservesSpace: true)
             }
-            .padding(14)
+            .padding(12)
             .frame(maxWidth: .infinity)
             .background(selected ? Color.brandRed.opacity(0.12) : .clear, in: .rect(cornerRadius: 20))
             .overlay {

@@ -171,7 +171,7 @@
 				PRODUCT_MODULE_NAME = RePlace;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = de.timoschroeder.RePlace;
 				PRODUCT_NAME = "RePlace.";
 				SDKROOT = macosx;
@@ -198,7 +198,7 @@
 				PRODUCT_MODULE_NAME = RePlace;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = de.timoschroeder.RePlace;
 				PRODUCT_NAME = "RePlace.";
 				SDKROOT = macosx;
