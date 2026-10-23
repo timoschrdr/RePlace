@@ -54,11 +54,21 @@ final class AppModel {
     var movingPosition: Spot?
     var isCalculatingRoute = false
 
+    // MARK: Time stamps
+
+    /// When the single location was last set (or the last route ended). Kept across launches,
+    /// because the simulated location stays on the iPhone until it is reset.
+    var lastSetAt: Date?
+    /// When the current route was started, and when it arrived.
+    var routeStartedAt: Date?
+    var routeFinishedAt: Date?
+
     private static let drivingThresholdKmh = 20.0
     /// Seconds between two simulated positions.
     private static let tick = 1.0
 
     private let favoritesKey = "favorites"
+    private let lastSetKey = "lastSetAt"
     private var routeTask: Task<Void, Never>?
     /// Meters of the route path the device has already covered.
     private var travelled = 0.0
@@ -74,6 +84,19 @@ final class AppModel {
                 Favorite(name: "Eiffel Tower, Paris", spot: Spot(latitude: 48.858370, longitude: 2.294481)),
             ]
         }
+        if let saved = UserDefaults.standard.object(forKey: lastSetKey) as? Date {
+            lastSetAt = saved
+        }
+    }
+
+    private func markLocationSet(at date: Date = .now) {
+        lastSetAt = date
+        UserDefaults.standard.set(date, forKey: lastSetKey)
+    }
+
+    private func clearLocationSet() {
+        lastSetAt = nil
+        UserDefaults.standard.removeObject(forKey: lastSetKey)
     }
 
     static func format(_ spot: Spot) -> String {
@@ -184,6 +207,9 @@ final class AppModel {
         }
         if result.ok {
             isSimulating = true
+            routeStartedAt = nil
+            routeFinishedAt = nil
+            markLocationSet()
             status = String(localized: "Location set: \(Self.format(spot))")
         } else {
             status = Self.errorStatus(result.output)
@@ -202,6 +228,9 @@ final class AppModel {
             isSimulating = false
             movingPosition = nil
             progress = 0
+            routeStartedAt = nil
+            routeFinishedAt = nil
+            clearLocationSet()
             status = String(localized: "Simulation stopped. Your iPhone uses its real location again.")
         } else {
             status = Self.errorStatus(result.output)
@@ -219,6 +248,15 @@ final class AppModel {
     /// Estimated travel time in seconds at the chosen speed.
     var routeDuration: Double {
         speedKmh > 0 ? routeDistance / (speedKmh / 3.6) : 0
+    }
+
+    /// Meters of the route that are still ahead.
+    var remainingDistance: Double { max(routeDistance - travelled, 0) }
+
+    /// When the route will end if it runs (or continues) at `start` with the chosen speed.
+    func estimatedArrival(startingAt start: Date) -> Date {
+        let seconds = speedKmh > 0 ? remainingDistance / (speedKmh / 3.6) : 0
+        return start.addingTimeInterval(seconds)
     }
 
     func addWaypoint(_ newSpot: Spot) {
@@ -246,6 +284,8 @@ final class AppModel {
         guard !isRouteActive else { return }
         progress = 0
         travelled = 0
+        routeStartedAt = nil
+        routeFinishedAt = nil
         routePath = straightPath()
         guard followRoads, waypoints.count >= 2 else { return }
         refreshTask = Task {
@@ -312,6 +352,8 @@ final class AppModel {
             progress = 0
             travelled = 0
             movingPosition = nil  // so a Pause before the first step is not "continuable"
+            routeStartedAt = .now
+            routeFinishedAt = nil
         }
 
         if !resuming, followRoads, routePath.count <= waypoints.count {
@@ -329,15 +371,30 @@ final class AppModel {
         )
         if resuming, !stops.isEmpty { stops.removeFirst() }  // the device is already there
 
+        // The pace follows the clock, not the number of steps sent. A new position is due every
+        // `tick` seconds. If sending one takes longer (devicectl is sometimes slow), the next
+        // one skips ahead to where the device should be by now, so the average speed and the
+        // estimated end time stay correct. The last point is never skipped.
         let clock = ContinuousClock()
-        var next = clock.now
+        var started = clock.now
+        let offset = resuming ? 1 : 0  // after a pause the first stop is one tick away
+        let maxCatchUp = 3  // ticks; a longer hang moves the schedule instead of jumping far ahead
+        var index = 0
 
-        for stop in stops {
+        while index < stops.count {
             if Task.isCancelled {
                 isPaused = movingPosition != nil
                 status = String(localized: "Route paused. Your iPhone stays at the last position.")
                 return
             }
+            var due = Int(started.duration(to: clock.now) / .seconds(Self.tick)) - offset
+            if due - index > maxCatchUp {
+                started += .seconds(Double(due - index - maxCatchUp) * Self.tick)
+                due = index + maxCatchUp
+            }
+            index = min(max(index, due), stops.count - 1)
+            let stop = stops[index]
+
             let result = await DeviceCtl.retrying {
                 await DeviceCtl.setLocation(device: device, latitude: stop.spot.latitude, longitude: stop.spot.longitude)
             }
@@ -356,15 +413,18 @@ final class AppModel {
             progress = total > 0 ? min(travelled / total, 1) : 1
             let percent = "\(Int(progress * 100)) %"
             status = String(localized: "Moving along the route: \(percent)")
-            // Keep a steady pace. If a step was slow, do not rush the following ones to catch
-            // up, because that would make the device move faster than the chosen speed.
-            next = max(next + .seconds(Self.tick), clock.now)
-            try? await clock.sleep(until: next)
+
+            index += 1
+            if index < stops.count {
+                try? await clock.sleep(until: started + .seconds(Double(index + offset) * Self.tick))
+            }
         }
 
         travelled = 0
         progress = 1  // avoid a floating-point leftover such as 0.99999999
         isPaused = false
+        routeFinishedAt = .now
+        markLocationSet()
         status = String(localized: "Route finished. Your iPhone stays at the end point.")
     }
 }

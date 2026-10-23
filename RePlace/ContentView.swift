@@ -263,6 +263,11 @@ struct ContentView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.leading, 14)
+            if let set = model.lastSetAt {
+                timeCard {
+                    timeRow("Location set", Self.stamp(set))
+                }
+            }
         }
     }
 
@@ -350,9 +355,66 @@ struct ContentView: View {
                 .padding(.horizontal, 14)
             }
 
+            if model.waypoints.count >= 2 {
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    routeTimes(now: context.date)
+                }
+            }
+
             if model.isRouteActive || model.progress > 0 {
                 ProgressView(value: model.progress)
                     .padding(.horizontal, 14)
+            }
+        }
+    }
+
+    // MARK: Zeiten
+
+    /// Date and time as the user's region writes them, e.g. "23 Oct 2026 at 14:05".
+    private static func stamp(_ date: Date) -> String {
+        date.formatted(.dateTime.day().month(.abbreviated).year().hour().minute())
+    }
+
+    private func timeCard<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            content()
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.quaternary.opacity(0.6), in: .rect(cornerRadius: 16))
+    }
+
+    private func timeRow(_ title: LocalizedStringKey, _ value: String) -> some View {
+        HStack(spacing: 8) {
+            Text(title)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 8)
+            Text(value)
+                .monospacedDigit()
+        }
+        .font(.caption)
+    }
+
+    /// Start and end of the route: planned while it has not started, real once it has.
+    private func routeTimes(now: Date) -> some View {
+        let started = model.routeStartedAt
+        let finished = model.routeFinishedAt
+        return timeCard {
+            if let started {
+                timeRow("Start", Self.stamp(started))
+            } else {
+                timeRow("Start (now)", Self.stamp(now))
+            }
+            if let finished {
+                timeRow("End", Self.stamp(finished))
+            } else {
+                timeRow("End (estimated)", Self.stamp(model.estimatedArrival(startingAt: now)))
+            }
+            if model.isPaused {
+                Text("Paused. The end time is for continuing right now.")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
             }
         }
     }

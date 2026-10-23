@@ -15,11 +15,15 @@ The app is available in English and German.
   <img src="docs/screenshot.png" width="720" alt="RePlace. in route mode: a floating sidebar with device, mode switch, waypoints, speed and the Start Route and Reset buttons next to a map of Berlin with a red route">
 </p>
 
+## Download
+
+Get the latest build from the [Releases page](https://github.com/timoschrdr/RePlace/releases/latest) (Apple silicon Macs with macOS 27). The app is not notarized by Apple, so macOS blocks it on the first launch: open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/RePlace..app` once. If you prefer, build it yourself from source (see below).
+
 ## How it works
 
 RePlace. is a thin SwiftUI front end for Apple's own `xcrun devicectl device simulate location` command (the same mechanism Xcode uses for "Simulate Location"). It does not jailbreak or modify the iPhone, and it needs no third-party tools.
 
-For routes, the app walks along the path itself and sends a new position about once per second, with a step length that matches the chosen speed. At the end of the route the iPhone simply stays at the last point.
+For routes, the app walks along the path itself and sends a new position about once per second, with a step length that matches the chosen speed. The pace follows the clock, so the estimated end time stays correct even if a single step is slow. At the end of the route the iPhone simply stays at the last point.
 
 ## Requirements
 
@@ -53,6 +57,8 @@ If you want to ship your own build, change the bundle identifier (`de.timoschroe
 5. **Pause** halts the iPhone where it is, and **Continue** goes on from exactly that point. You can change the speed while paused. Waypoints are locked while a route runs or is paused.
 6. **Reset** returns the iPhone to its real location.
 
+The sidebar shows **when** the location was set. For routes it shows the **start** time and the **end** time: the end is estimated from the route length and the speed while the route runs, and becomes the real arrival time when it is finished. The time of the last set location is remembered until you press **Reset**.
+
 Favorites are stored locally in the app's preferences on your Mac.
 
 ## Settings
@@ -65,7 +71,7 @@ RePlace. does not collect, store or send any personal data to the developer. It 
 
 - **Map, address search and routes:** The map tiles, the address search and the road routing are provided by Apple Maps (MapKit). When you search, your search text is sent to Apple. When **Follow roads** is on, the coordinates of your waypoints are sent to Apple to calculate the route. Both are handled under [Apple's privacy policy](https://www.apple.com/legal/privacy/). With **Follow roads** off, no route requests are made.
 - **Your iPhone:** The coordinates you choose are sent only to the iPhone you select, through Apple's own `devicectl` tool on your Mac.
-- **Stored on your Mac:** Your favorites are saved locally in the app's preferences and are never uploaded. Delete the app's preferences to remove them.
+- **Stored on your Mac:** Your favorites, the chosen app icon and the time the location was last set are saved locally in the app's preferences and are never uploaded. Delete the app's preferences to remove them.
 
 ## Responsible use
 
