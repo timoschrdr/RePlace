@@ -7,80 +7,50 @@
 
 # RePlace.
 
-A small macOS app that sets a simulated GPS location on your iPhone – pick a place on the map, search an address or paste coordinates, and press **Set Location**. It works for the whole device, so every app sees the simulated location.
-
-The app is available in English and German.
+A small macOS app that sets a simulated GPS location, or a moving route, on your iPhone. Pick a place on the map, search an address or paste coordinates. It works for the whole device, so every app sees it. Available in English and German.
 
 <p align="center">
-  <img src="docs/screenshot.png" width="720" alt="RePlace. in route mode: a floating sidebar with device, mode switch, waypoints, speed and the Start Route and Reset buttons next to a map of Berlin with a red route">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.jpg">
+    <img src="docs/screenshot-light.jpg" width="720" alt="RePlace. in route mode: a floating sidebar with device, mode switch, waypoints, speed, route summary with start and end time, options and favorites next to a map with a red route">
+  </picture>
 </p>
 
 ## Download
 
-Get the latest build from the [Releases page](https://github.com/timoschrdr/RePlace/releases/latest) (Apple silicon Macs with macOS 27). The app is not notarized by Apple, so macOS blocks it on the first launch: open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/RePlace..app` once. If you prefer, build it yourself from source (see below).
-
-## How it works
-
-RePlace. is a thin SwiftUI front end for Apple's own `xcrun devicectl device simulate location` command (the same mechanism Xcode uses for "Simulate Location"). It does not jailbreak or modify the iPhone, and it needs no third-party tools.
-
-For routes, the app walks along the path itself and sends a new position about once per second, with a step length that matches the chosen speed. The pace follows the clock, so the estimated end time stays correct even if a single step is slow. At the end of the route the iPhone simply stays at the last point.
+Get the latest build from the [Releases page](https://github.com/timoschrdr/RePlace/releases/latest) (Apple silicon, macOS 27). The app is not notarized, so macOS blocks it on the first launch: open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/RePlace..app` once. Or build it yourself (below).
 
 ## Requirements
 
-- macOS 27 and Xcode (including its command line tools) installed
-- An iPhone connected by cable or Wi-Fi, unlocked and paired with the Mac
-- **Developer Mode** enabled on the iPhone (Settings → Privacy & Security → Developer Mode)
+- macOS 27 and Xcode (RePlace. uses Apple's `devicectl`, the tool behind Xcode's "Simulate Location"; no jailbreak, no third-party tools)
+- An iPhone that is connected, unlocked and paired, with **Developer Mode** turned on (Settings → Privacy & Security)
 
-## Build and run
+## Build
 
-1. Open `RePlace.xcodeproj` in Xcode.
-2. Select the `RePlace` scheme and **My Mac** as the destination.
-3. Press ⌘R. The project is signed locally ("Sign to Run Locally"), so no Apple Developer account is needed.
-
-If you want to ship your own build, change the bundle identifier (`de.timoschroeder.RePlace`) and set your own signing team.
+Open `RePlace.xcodeproj` in Xcode, choose **My Mac** and press ⌘R. It is signed locally, so no Apple Developer account is needed. To ship your own build, change the bundle identifier (`de.timoschroeder.RePlace`).
 
 ## Usage
 
-**Single location**
+**Point:** choose your iPhone, click the map, search an address or enter `latitude, longitude`, then press **Set Location**. The sidebar shows when it was set. **Reset** brings back the real location; the simulation also ends when the connection is lost.
 
-1. Choose your iPhone in the sidebar.
-2. Click the map, search an address or enter `latitude, longitude`.
-3. Press **Set Location**.
-4. Press **Reset** to return to the real location. The simulation also ends when the connection to the Mac is lost.
+**Route:** switch to **Route** and click the map (or pick a place) to add waypoints. Drag a pin to move it, undo with ⌥⌘Z. Choose a speed, then **Start Route**. The iPhone moves along the route and stops at the last waypoint. **Pause** and **Continue** work at any time, even with a different speed. The sidebar shows the estimated end time, which becomes the real arrival time.
 
-**Route**
+**Options** (folded away by default): **Follow roads** routes the whole trip from first to last waypoint with Apple Maps, so longer drives use the motorway, and waypoints only count where the route would otherwise miss them. **Prefer motorways** (from 20 km/h) takes a motorway route when one exists, even if a route through town is a little faster. A route can only join a motorway at its ramps, so for short trips click near an on-ramp and an exit. With **Follow roads** off, the path is a straight line through your clicks.
 
-1. Switch the sidebar to **Route**.
-2. Click the map, search an address or choose a favorite to add waypoints. Remove a waypoint with its ✕ button.
-3. Choose a speed (slider or the walking, bike and car presets). With **Follow roads** on, the path follows streets between the waypoints. With it off, the path is a straight line.
-4. Press **Start Route**. The iPhone moves along the route and stops at the last waypoint.
-5. **Pause** halts the iPhone where it is, and **Continue** goes on from exactly that point. You can change the speed while paused. Waypoints are locked while a route runs or is paused.
-6. **Reset** returns the iPhone to its real location.
-
-The sidebar shows **when** the location was set. For routes it shows the **start** time and the **end** time: the end is estimated from the route length and the speed while the route runs, and becomes the real arrival time when it is finished. The time of the last set location is remembered until you press **Reset**.
-
-Favorites are stored locally in the app's preferences on your Mac.
-
-## Settings
-
-**RePlace. > Settings…** (⌘,) in the menu bar lets you choose the app icon: the default **Raccoon** or one of the alternatives, the **Grey Raccoon** and the **Pin**. macOS has no official alternate app icon feature, so an alternative icon changes the Dock icon while the app is running and is remembered for the next launch. The icon in Finder and in the Applications folder always stays the Raccoon. The Raccoon icon is in [RePlace/AppIcon.icon](RePlace/AppIcon.icon). The sources of the alternative icons are kept in [docs/art/GrayRaccoon.icon](docs/art/GrayRaccoon.icon) and [docs/art/PinIcon.icon](docs/art/PinIcon.icon).
+**Shortcuts:** ⌘↩ main button, ⌘R reset, ⌥⌘Z undo last waypoint. **Settings** (⌘,) lets you pick another app icon for the Dock.
 
 ## Privacy
 
-RePlace. does not collect, store or send any personal data to the developer. It has no accounts, analytics, advertising or tracking, and it never reads your real location.
-
-- **Map, address search and routes:** The map tiles, the address search and the road routing are provided by Apple Maps (MapKit). When you search, your search text is sent to Apple. When **Follow roads** is on, the coordinates of your waypoints are sent to Apple to calculate the route. Both are handled under [Apple's privacy policy](https://www.apple.com/legal/privacy/). With **Follow roads** off, no route requests are made.
-- **Your iPhone:** The coordinates you choose are sent only to the iPhone you select, through Apple's own `devicectl` tool on your Mac.
-- **Stored on your Mac:** Your favorites, the chosen app icon and the time the location was last set are saved locally in the app's preferences and are never uploaded. Delete the app's preferences to remove them.
+RePlace. collects nothing and has no accounts, analytics or tracking. The map, address search and road routing come from Apple Maps, so search text and, with **Follow roads** on, waypoint coordinates are sent to Apple ([privacy policy](https://www.apple.com/legal/privacy/)). Coordinates reach only the iPhone you select, through `devicectl`. Favorites, the chosen icon and the time of the last location are stored locally in the app's preferences.
 
 ## Responsible use
 
-Use RePlace. only on your own devices, for development, testing and privacy purposes. Many apps and online services forbid faking your location in their terms of use and may suspend accounts that do so. You are responsible for how you use this tool. The software is provided as is, without warranty (see [LICENSE](LICENSE)).
+Use RePlace. only on your own devices, for development, testing and privacy purposes. Many apps and services forbid faking your location and may suspend accounts that do so. You are responsible for how you use it. The software is provided as is, without warranty.
 
 ## Credits
 
-The raccoon illustrations used for the app icons (the default Raccoon and the Grey Raccoon) were generated with ChatGPT (OpenAI). The backgrounds were removed and the images were cropped to fit the icons. The Pin icon and the other artwork in this repository were created for this project.
+The raccoon artwork was generated with ChatGPT (OpenAI) and then cut out and cropped. The pin icon and the rest were created for this project.
 
 ## License
 
-MIT – see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). Security issues: see [SECURITY.md](SECURITY.md).

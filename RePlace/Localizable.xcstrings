@@ -331,16 +331,6 @@
         }
       }
     },
-    "Speed: %lld km/h": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tempo: %lld km/h"
-          }
-        }
-      }
-    },
     "Calculating route…": {
       "localizations": {
         "de": {
@@ -537,6 +527,176 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pausiert. Die Endzeit gilt, wenn du jetzt fortsetzt."
+          }
+        }
+      }
+    },
+    "Prefer motorways": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autobahn bevorzugen"
+          }
+        }
+      }
+    },
+    "via %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "über %@"
+          }
+        }
+      }
+    },
+    "Waypoints": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wegpunkte"
+          }
+        }
+      }
+    },
+    "Options": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optionen"
+          }
+        }
+      }
+    },
+    "Speed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tempo"
+          }
+        }
+      }
+    },
+    "%lld km/h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld km/h"
+          }
+        }
+      }
+    },
+    "Via": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über"
+          }
+        }
+      }
+    },
+    "Position": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position"
+          }
+        }
+      }
+    },
+    "Today": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute"
+          }
+        }
+      }
+    },
+    "Undo last waypoint (⌥⌘Z)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzten Wegpunkt rückgängig machen (⌥⌘Z)"
+          }
+        }
+      }
+    },
+    "Remove all waypoints": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Wegpunkte entfernen"
+          }
+        }
+      }
+    },
+    "Remove waypoint": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wegpunkt entfernen"
+          }
+        }
+      }
+    },
+    "Undo Last Waypoint": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzten Wegpunkt rückgängig"
+          }
+        }
+      }
+    },
+    "Simulation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulation"
+          }
+        }
+      }
+    },
+    "Clear Waypoints": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wegpunkte entfernen"
+          }
+        }
+      }
+    },
+    "Shortcuts: ⌘↩ main button, ⌘R reset, ⌥⌘Z undo last waypoint. Drag a numbered pin on the map to move a waypoint.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurzbefehle: ⌘↩ Hauptknopf, ⌘R Zurücksetzen, ⌥⌘Z letzten Wegpunkt rückgängig. Zum Verschieben eines Wegpunkts die nummerierte Nadel auf der Karte ziehen."
+          }
+        }
+      }
+    },
+    "No iPhone connected": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein iPhone verbunden"
           }
         }
       }

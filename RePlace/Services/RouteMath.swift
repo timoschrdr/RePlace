@@ -51,9 +51,47 @@ nonisolated enum RouteMath {
         return result
     }
 
-    /// Points along `path`, one every `step` meters (see `stops(along:every:)`).
-    static func samples(along path: [Spot], every step: Double) -> [Spot] {
-        stops(along: path, every: step).map(\.spot)
+    /// Distance in meters from `spot` to the closest point on the line `path`.
+    static func distance(from spot: Spot, to path: [Spot]) -> Double {
+        guard let first = path.first else { return .infinity }
+        guard path.count > 1 else { return distance(spot, first) }
+        // Flat local projection in meters around `spot`: precise enough for distances of a few km.
+        let metersPerLat = 110_574.0
+        let metersPerLon = 111_320.0 * cos(spot.latitude * .pi / 180)
+        func xy(_ p: Spot) -> (Double, Double) {
+            ((p.longitude - spot.longitude) * metersPerLon, (p.latitude - spot.latitude) * metersPerLat)
+        }
+        var best = Double.infinity
+        for (a, b) in zip(path, path.dropFirst()) {
+            let (ax, ay) = xy(a), (bx, by) = xy(b)
+            let dx = bx - ax, dy = by - ay
+            let lengthSquared = dx * dx + dy * dy
+            let t = lengthSquared > 0 ? min(max(-(ax * dx + ay * dy) / lengthSquared, 0), 1) : 0
+            best = min(best, ((ax + t * dx) * (ax + t * dx) + (ay + t * dy) * (ay + t * dy)).squareRoot())
+        }
+        return best
+    }
+
+    /// Removes short out-and-back spikes: a point where the path turns around sharply between
+    /// two short segments (a detour to a waypoint that is not on the road, or a snapped end point).
+    static func removingSpikes(from path: [Spot], maxLength: Double = 80) -> [Spot] {
+        func isSpike(_ a: Spot, _ b: Spot, _ c: Spot) -> Bool {
+            let lengthAB = distance(a, b), lengthBC = distance(b, c)
+            guard lengthAB > 0, lengthBC > 0, lengthAB < maxLength, lengthBC < maxLength else { return false }
+            let metersPerLon = 111_320.0 * cos(b.latitude * .pi / 180)
+            let ux = (b.longitude - a.longitude) * metersPerLon, uy = (b.latitude - a.latitude) * 110_574.0
+            let vx = (c.longitude - b.longitude) * metersPerLon, vy = (c.latitude - b.latitude) * 110_574.0
+            let cosine = (ux * vx + uy * vy) / (lengthAB * lengthBC)
+            return cosine < -0.94  // turns by more than about 160 degrees
+        }
+        var result: [Spot] = []
+        for point in path {
+            while result.count >= 2, isSpike(result[result.count - 2], result[result.count - 1], point) {
+                result.removeLast()
+            }
+            result.append(point)
+        }
+        return result
     }
 
     /// The part of `path` that is left after `travelled` meters. The result starts at the

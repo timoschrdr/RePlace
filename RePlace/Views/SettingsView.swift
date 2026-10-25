@@ -8,7 +8,7 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("App Icon")
-                .font(.headline)
+                .font(.title3.weight(.semibold))
 
             HStack(spacing: 12) {
                 ForEach(AppIconChoice.allCases) { option in
@@ -17,13 +17,14 @@ struct SettingsView: View {
             }
 
             Text("Changes the icon in the Dock while RePlace. is running. The icon in Finder and in the Applications folder stays the same.")
-                .font(.caption)
+                .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(24)
-        .frame(width: 480)
-        .tint(.brandRed)
+        .frame(width: 500)
+        .tint(.brand)
+        .animation(.smooth, value: choice)
         .onChange(of: choice) { AppIcon.apply() }
     }
 
@@ -37,6 +38,7 @@ struct SettingsView: View {
                     .resizable()
                     .interpolation(.high)
                     .frame(width: 100, height: 100)
+                    .scaleEffect(selected ? 1.06 : 1)
                 Text(option.title)
                     .font(.callout.weight(selected ? .semibold : .regular))
                     .multilineTextAlignment(.center)
@@ -44,12 +46,15 @@ struct SettingsView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity)
-            .background(selected ? Color.brandRed.opacity(0.12) : .clear, in: .rect(cornerRadius: 20))
+            .background(
+                selected ? Color.brand.opacity(0.14) : Color.primary.opacity(0.05),
+                in: .rect(cornerRadius: Layout.cardRadius, style: .continuous)
+            )
             .overlay {
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(selected ? Color.brandRed : Color.secondary.opacity(0.25), lineWidth: selected ? 2 : 1)
+                RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
+                    .strokeBorder(selected ? Color.brand : .clear, lineWidth: 2)
             }
-            .contentShape(.rect(cornerRadius: 20))
+            .contentShape(.rect(cornerRadius: Layout.cardRadius, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])

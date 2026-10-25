@@ -1,5 +1,6 @@
 import Foundation
 
+/// An iPhone (or other iOS device) known to CoreDevice.
 struct Device: Identifiable, Hashable {
     let id: String
     let name: String
@@ -9,7 +10,7 @@ struct Device: Identifiable, Hashable {
     var label: String { "\(name) (\(model))" }
 }
 
-/// Dünner Wrapper um `xcrun devicectl`, das Apple mit Xcode ausliefert.
+/// A thin wrapper around `xcrun devicectl`, the command line tool that ships with Xcode.
 enum DeviceCtl {
     struct Result {
         let ok: Bool
@@ -40,7 +41,7 @@ enum DeviceCtl {
     }
 
     nonisolated static func listDevices() async -> [Device] {
-        let jsonURL = FileManager.default.temporaryDirectory.appendingPathComponent("gpschanger-devices-\(UUID().uuidString).json")
+        let jsonURL = FileManager.default.temporaryDirectory.appendingPathComponent("replace-devices-\(UUID().uuidString).json")
         defer { try? FileManager.default.removeItem(at: jsonURL) }
         let result = await run(["list", "devices", "--json-output", jsonURL.path, "--quiet"])
         guard result.ok,

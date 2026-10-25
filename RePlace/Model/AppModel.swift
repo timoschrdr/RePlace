@@ -1,24 +1,18 @@
 import Foundation
 import MapKit
 import Observation
+import SwiftUI
 
-struct Favorite: Identifiable, Codable, Equatable {
-    var id = UUID()
-    var name: String
-    var spot: Spot
-}
-
-enum TargetMode: Hashable {
-    case point
-    case route
-}
-
+/// The state of the app and the logic behind the buttons: the chosen device and place, the
+/// favorites, and the simulation of a single location or of a moving route.
 @Observable
 final class AppModel {
+    // MARK: Device and place
+
     var devices: [Device] = []
     var selectedDeviceID: String?
     var spot: Spot? {
-        didSet { if let spot { coordText = Self.format(spot) } }
+        didSet { if let spot { coordText = spot.text } }
     }
     var coordText = ""
     var query = ""
@@ -28,13 +22,17 @@ final class AppModel {
     var isBusy = false
     var isSimulating = false
 
-    // MARK: Route state
+    // MARK: Route settings and state
 
     var mode: TargetMode = .point
     var waypoints: [Spot] = [] {
         didSet { scheduleRouteRefresh() }
     }
     var followRoads = true {
+        didSet { scheduleRouteRefresh() }
+    }
+    /// Take a motorway alternative over a faster route through town (driving speeds only).
+    var preferMotorways = true {
         didSet { scheduleRouteRefresh() }
     }
     var speedKmh = 5.0 {
@@ -47,6 +45,8 @@ final class AppModel {
     }
     /// The path the device will follow: road geometry or straight lines between waypoints.
     var routePath: [Spot] = []
+    /// Main roads of the planned path, e.g. `["A43"]`. Empty for straight lines.
+    var routeRoads: [String] = []
     var isMoving = false
     /// True after Pause (or an interrupted run) while the route can be continued.
     var isPaused = false
@@ -63,16 +63,25 @@ final class AppModel {
     var routeStartedAt: Date?
     var routeFinishedAt: Date?
 
-    private static let drivingThresholdKmh = 20.0
+    // MARK: Internals
+
+    /// From this speed on routes are planned for a car, below it for a pedestrian.
+    static let drivingThresholdKmh = 20.0
     /// Seconds between two simulated positions.
     private static let tick = 1.0
+    /// A hang of devicectl longer than this many ticks moves the schedule instead of making the
+    /// device jump far ahead.
+    private static let maxCatchUpTicks = 3
 
     private let favoritesKey = "favorites"
     private let lastSetKey = "lastSetAt"
     private var routeTask: Task<Void, Never>?
+    private var refreshTask: Task<Void, Never>?
+    private var sleepActivity: NSObjectProtocol?
+    /// Earlier states of the waypoint list, for undo.
+    private var waypointHistory: [[Spot]] = []
     /// Meters of the route path the device has already covered.
     private var travelled = 0.0
-    private var refreshTask: Task<Void, Never>?
 
     init() {
         if let data = UserDefaults.standard.data(forKey: favoritesKey),
@@ -84,26 +93,10 @@ final class AppModel {
                 Favorite(name: "Eiffel Tower, Paris", spot: Spot(latitude: 48.858370, longitude: 2.294481)),
             ]
         }
-        if let saved = UserDefaults.standard.object(forKey: lastSetKey) as? Date {
-            lastSetAt = saved
-        }
+        lastSetAt = UserDefaults.standard.object(forKey: lastSetKey) as? Date
     }
 
-    private func markLocationSet(at date: Date = .now) {
-        lastSetAt = date
-        UserDefaults.standard.set(date, forKey: lastSetKey)
-    }
-
-    private func clearLocationSet() {
-        lastSetAt = nil
-        UserDefaults.standard.removeObject(forKey: lastSetKey)
-    }
-
-    static func format(_ spot: Spot) -> String {
-        String(format: "%.6f, %.6f", spot.latitude, spot.longitude)
-    }
-
-    // MARK: Geräte
+    // MARK: Devices
 
     func refreshDevices() async {
         devices = await DeviceCtl.listDevices().filter(\.connected)
@@ -115,22 +108,14 @@ final class AppModel {
         }
     }
 
-    // MARK: Ort wählen
+    // MARK: Choosing a place
 
     func applyCoordText() {
-        let numbers = coordText
-            .replacingOccurrences(of: ",", with: " ")
-            .split(whereSeparator: { $0 == " " || $0 == ";" })
-            .compactMap { Double($0) }
-        // Dezimalkomma ("51,43 7,21") ist mehrdeutig; erwartet wird "lat, lon" mit Punkt.
-        guard numbers.count == 2,
-              (-90...90).contains(numbers[0]),
-              (-180...180).contains(numbers[1])
-        else {
+        guard let parsed = Spot(parsing: coordText) else {
             status = String(localized: "Invalid coordinates. Format: 52.516275, 13.377704")
             return
         }
-        spot = Spot(latitude: numbers[0], longitude: numbers[1])
+        spot = parsed
     }
 
     func search() async {
@@ -169,12 +154,12 @@ final class AppModel {
         searchResults = []
     }
 
-    // MARK: Favoriten
+    // MARK: Favorites
 
     func addFavorite() {
         guard let spot else { return }
         let name = query.trimmingCharacters(in: .whitespaces)
-        favorites.append(Favorite(name: name.isEmpty ? Self.format(spot) : name, spot: spot))
+        favorites.append(Favorite(name: name.isEmpty ? spot.text : name, spot: spot))
         saveFavorites()
     }
 
@@ -189,11 +174,21 @@ final class AppModel {
         }
     }
 
-    // MARK: Simulation (single point)
+    // MARK: Single location
 
     private static func errorStatus(_ output: String) -> String {
         let detail = output.split(separator: "\n").last.map(String.init) ?? String(localized: "unknown")
         return String(localized: "Error: \(detail)")
+    }
+
+    private func markLocationSet(at date: Date = .now) {
+        lastSetAt = date
+        UserDefaults.standard.set(date, forKey: lastSetKey)
+    }
+
+    private func clearLocationSet() {
+        lastSetAt = nil
+        UserDefaults.standard.removeObject(forKey: lastSetKey)
     }
 
     func apply() async {
@@ -210,7 +205,7 @@ final class AppModel {
             routeStartedAt = nil
             routeFinishedAt = nil
             markLocationSet()
-            status = String(localized: "Location set: \(Self.format(spot))")
+            status = String(localized: "Location set: \(spot.text)")
         } else {
             status = Self.errorStatus(result.output)
         }
@@ -237,46 +232,122 @@ final class AppModel {
         }
     }
 
-    // MARK: Route
+    // MARK: Route: waypoints and estimates
 
     /// True while a route is running or paused; the waypoints are locked then.
     var isRouteActive: Bool { isMoving || isPaused }
 
+    /// True if the chosen speed plans the route for a car.
+    var isDriving: Bool { speedKmh >= Self.drivingThresholdKmh }
+
     /// Length of the current route path in meters.
     var routeDistance: Double { RouteMath.length(of: routePath) }
 
-    /// Estimated travel time in seconds at the chosen speed.
-    var routeDuration: Double {
-        speedKmh > 0 ? routeDistance / (speedKmh / 3.6) : 0
-    }
-
-    /// Meters of the route that are still ahead.
-    var remainingDistance: Double { max(routeDistance - travelled, 0) }
+    /// Estimated travel time of the whole route in seconds at the chosen speed.
+    var routeDuration: Double { seconds(for: routeDistance) }
 
     /// When the route will end if it runs (or continues) at `start` with the chosen speed.
     func estimatedArrival(startingAt start: Date) -> Date {
-        let seconds = speedKmh > 0 ? remainingDistance / (speedKmh / 3.6) : 0
-        return start.addingTimeInterval(seconds)
+        start.addingTimeInterval(seconds(for: max(routeDistance - travelled, 0)))
+    }
+
+    private func seconds(for distance: Double) -> Double {
+        speedKmh > 0 ? distance / (speedKmh / 3.6) : 0
+    }
+
+    // MARK: Route: waypoints
+
+    var canUndoWaypoints: Bool { !waypointHistory.isEmpty && !isRouteActive }
+
+    /// Remembers the current waypoints so the next change can be undone.
+    private func recordWaypoints() {
+        waypointHistory.append(waypoints)
+        if waypointHistory.count > 50 { waypointHistory.removeFirst() }
     }
 
     func addWaypoint(_ newSpot: Spot) {
         guard !isRouteActive else { return }
+        recordWaypoints()
         waypoints.append(newSpot)
     }
 
     func removeWaypoint(at index: Int) {
         guard !isRouteActive, waypoints.indices.contains(index) else { return }
+        recordWaypoints()
         waypoints.remove(at: index)
     }
 
     func clearWaypoints() {
-        guard !isRouteActive else { return }
+        guard !isRouteActive, !waypoints.isEmpty else { return }
+        recordWaypoints()
         waypoints.removeAll()
         movingPosition = nil
         progress = 0
     }
 
-    private func straightPath() -> [Spot] { waypoints }
+    /// Call once when the user starts dragging a waypoint, so the whole drag is one undo step.
+    func beginMovingWaypoint() {
+        guard !isRouteActive else { return }
+        recordWaypoints()
+    }
+
+    func moveWaypoint(at index: Int, to newSpot: Spot) {
+        guard !isRouteActive, waypoints.indices.contains(index) else { return }
+        waypoints[index] = newSpot
+    }
+
+    func undoWaypoints() {
+        guard canUndoWaypoints, let previous = waypointHistory.popLast() else { return }
+        waypoints = previous
+    }
+
+    // MARK: Main action
+
+    /// What the big button does: it depends on the mode and on whether a route is running.
+    enum PrimaryAction {
+        case setLocation, startRoute, pause, resume
+
+        var title: LocalizedStringKey {
+            switch self {
+            case .setLocation: "Set Location"
+            case .startRoute: "Start Route"
+            case .pause: "Pause"
+            case .resume: "Continue"
+            }
+        }
+    }
+
+    var primaryAction: PrimaryAction {
+        if mode == .point { return .setLocation }
+        if isMoving { return .pause }
+        return isPaused ? .resume : .startRoute
+    }
+
+    var isPrimaryActionEnabled: Bool {
+        switch primaryAction {
+        case .setLocation: !isBusy && selectedDeviceID != nil && !coordText.isEmpty
+        case .startRoute: !isBusy && selectedDeviceID != nil && waypoints.count >= 2 && !isCalculatingRoute
+        case .pause: true
+        case .resume: !isBusy && selectedDeviceID != nil
+        }
+    }
+
+    var canReset: Bool { !isBusy && selectedDeviceID != nil }
+
+    func performPrimaryAction() {
+        guard isPrimaryActionEnabled else { return }
+        switch primaryAction {
+        case .setLocation:
+            applyCoordText()
+            Task { await apply() }
+        case .startRoute, .resume:
+            startRoute()
+        case .pause:
+            Task { await pauseRoute() }
+        }
+    }
+
+    // MARK: Route: planning
 
     /// Recomputes the route path after the waypoints, road mode or speed changed.
     private func scheduleRouteRefresh() {
@@ -286,46 +357,31 @@ final class AppModel {
         travelled = 0
         routeStartedAt = nil
         routeFinishedAt = nil
-        routePath = straightPath()
+        routePath = waypoints
+        routeRoads = []
         guard followRoads, waypoints.count >= 2 else { return }
         refreshTask = Task {
             try? await Task.sleep(for: .milliseconds(400))  // debounce quick successive clicks
             guard !Task.isCancelled else { return }
             isCalculatingRoute = true
-            let path = await roadPath()
+            let planned = await plannedRoute()
             guard !Task.isCancelled else { return }
             isCalculatingRoute = false
-            if let path {
-                routePath = path
+            if let planned {
+                routePath = planned.path
+                routeRoads = planned.roads
             } else {
                 status = String(localized: "Could not calculate roads. Using straight lines instead.")
             }
         }
     }
 
-    /// Route geometry that follows roads, or nil if Apple Maps could not provide it.
-    private func roadPath() async -> [Spot]? {
-        let transport: MKDirectionsTransportType = speedKmh >= Self.drivingThresholdKmh ? .automobile : .walking
-        var path: [Spot] = []
-        for (from, to) in zip(waypoints, waypoints.dropFirst()) {
-            let request = MKDirections.Request()
-            request.source = MKMapItem(location: from.location, address: nil)
-            request.destination = MKMapItem(location: to.location, address: nil)
-            request.transportType = transport
-            guard let route = try? await MKDirections(request: request).calculate().routes.first else {
-                return nil
-            }
-            let polyline = route.polyline
-            var coordinates = [CLLocationCoordinate2D](
-                repeating: CLLocationCoordinate2D(), count: polyline.pointCount
-            )
-            polyline.getCoordinates(&coordinates, range: NSRange(location: 0, length: polyline.pointCount))
-            path.append(from)
-            path.append(contentsOf: coordinates.map { Spot(latitude: $0.latitude, longitude: $0.longitude) })
-            path.append(to)
-        }
-        return path
+    /// The route along roads, or nil if Apple Maps could not provide it.
+    private func plannedRoute() async -> PlannedRoute? {
+        await RoutePlanner.route(through: waypoints, driving: isDriving, preferMotorways: preferMotorways)
     }
+
+    // MARK: Route: simulation
 
     /// Starts the route from the beginning, or continues it after a pause.
     func startRoute() {
@@ -345,8 +401,27 @@ final class AppModel {
         isMoving = false
     }
 
+    /// Keeps the Mac from going to sleep while a route runs; a sleeping Mac would stop it.
+    private func preventSleep() {
+        guard sleepActivity == nil else { return }
+        sleepActivity = ProcessInfo.processInfo.beginActivity(
+            options: [.idleSystemSleepDisabled, .userInitiated],
+            reason: "Simulating a route"
+        )
+    }
+
+    private func allowSleep() {
+        guard let activity = sleepActivity else { return }
+        ProcessInfo.processInfo.endActivity(activity)
+        sleepActivity = nil
+    }
+
     private func runRoute(device: String, resuming: Bool) async {
-        defer { isMoving = false }
+        preventSleep()
+        defer {
+            isMoving = false
+            allowSleep()
+        }
         refreshTask?.cancel()
         if !resuming {
             progress = 0
@@ -358,7 +433,13 @@ final class AppModel {
 
         if !resuming, followRoads, routePath.count <= waypoints.count {
             status = String(localized: "Calculating route…")
-            routePath = await roadPath() ?? straightPath()
+            if let planned = await plannedRoute() {
+                routePath = planned.path
+                routeRoads = planned.roads
+            } else {
+                routePath = waypoints
+                routeRoads = []
+            }
         }
         guard !Task.isCancelled else { return }
 
@@ -378,7 +459,6 @@ final class AppModel {
         let clock = ContinuousClock()
         var started = clock.now
         let offset = resuming ? 1 : 0  // after a pause the first stop is one tick away
-        let maxCatchUp = 3  // ticks; a longer hang moves the schedule instead of jumping far ahead
         var index = 0
 
         while index < stops.count {
@@ -388,9 +468,9 @@ final class AppModel {
                 return
             }
             var due = Int(started.duration(to: clock.now) / .seconds(Self.tick)) - offset
-            if due - index > maxCatchUp {
-                started += .seconds(Double(due - index - maxCatchUp) * Self.tick)
-                due = index + maxCatchUp
+            if due - index > Self.maxCatchUpTicks {
+                started += .seconds(Double(due - index - Self.maxCatchUpTicks) * Self.tick)
+                due = index + Self.maxCatchUpTicks
             }
             index = min(max(index, due), stops.count - 1)
             let stop = stops[index]
