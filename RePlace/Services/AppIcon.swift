@@ -2,9 +2,11 @@ import AppKit
 import SwiftUI
 
 /// The app icons the user can choose from in the settings. The raccoon is the icon of the app
-/// itself; the others (the grey raccoon and the pin) are alternatives that are shown in the Dock.
+/// itself; the others (the previous "legacy" raccoon, the grey raccoon and the pin) are
+/// alternatives that are shown in the Dock.
 enum AppIconChoice: String, CaseIterable, Identifiable {
     case raccoon
+    case legacy
     case gray
     case pin
 
@@ -13,6 +15,7 @@ enum AppIconChoice: String, CaseIterable, Identifiable {
     var title: LocalizedStringKey {
         switch self {
         case .raccoon: "Raccoon"
+        case .legacy: "Legacy Raccoon"
         case .gray: "Grey Raccoon"
         case .pin: "Pin"
         }
@@ -23,6 +26,7 @@ enum AppIconChoice: String, CaseIterable, Identifiable {
         let base: String
         switch self {
         case .raccoon: base = "Raccoon"
+        case .legacy: base = "Legacy"
         case .gray: base = "Gray"
         case .pin: base = "Pin"
         }
@@ -48,7 +52,7 @@ enum AppIcon {
         switch choice {
         case .raccoon:
             NSApp.applicationIconImage = nil  // back to the icon in the app bundle
-        case .gray, .pin:
+        case .legacy, .gray, .pin:
             NSApp.applicationIconImage = NSImage(named: choice.imageName(dark: isDark))
         }
     }
