@@ -1,6 +1,28 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "About RePlace.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über RePlace."
+          }
+        }
+      }
+    },
+    "Check for Updates": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Updates suchen"
+          }
+        }
+      }
+    },
     "Choose a device and a location.": {
       "localizations": {
         "de": {
@@ -37,6 +59,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nichts gefunden für „%@“."
+          }
+        }
+      }
+    },
+    "Opens the releases page on GitHub": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet die Release-Seite auf GitHub"
           }
         }
       }

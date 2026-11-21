@@ -54,7 +54,7 @@ struct DeviceSection: View {
     private var deviceSymbols: some View {
         HStack(spacing: 4) {
             Image(systemName: "iphone")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.primary)
             if let transport = selectedDevice?.transport, let symbol = transport.symbol {
                 Image(systemName: symbol)
                     .font(.footnote.weight(.semibold))

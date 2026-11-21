@@ -4,6 +4,7 @@ import SwiftUI
 struct RePlaceApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppModel()
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
         WindowGroup {
@@ -12,11 +13,9 @@ struct RePlaceApp: App {
                 .onAppear { AppDelegate.model = model }
         }
         .commands {
-            CommandGroup(after: .appInfo) {
-                // The arrow shows that this opens the GitHub releases page in the browser.
-                Button("Check for Updates…", systemImage: "arrow.up.right.square") {
-                    NSWorkspace.shared.open(Self.releasesURL)
-                }
+            CommandGroup(replacing: .appInfo) {
+                Button("About RePlace.") { openWindow(id: AboutView.windowID) }
+                Button("Check for Updates…") { NSWorkspace.shared.open(AboutView.releasesURL) }
             }
             CommandGroup(after: .undoRedo) {
                 Button("Undo Last Waypoint") { model.undoWaypoints() }
@@ -43,10 +42,13 @@ struct RePlaceApp: App {
             }
         }
 
+        Window("About RePlace.", id: AboutView.windowID) {
+            AboutView()
+        }
+        .windowResizability(.contentSize)
+
         Settings {
             SettingsView()
         }
     }
-
-    private static let releasesURL = URL(string: "https://github.com/timoschrdr/RePlace/releases/latest")!
 }
