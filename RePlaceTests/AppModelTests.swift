@@ -16,6 +16,17 @@ final class MemoryDefaults: UserDefaults {
     override func removeObject(forKey defaultName: String) { store[defaultName] = nil }
 }
 
+
+/// Collects the notifications the model asks for.
+@MainActor
+final class RecordingNotifier {
+    private(set) var sent: [String] = []
+    private(set) var accessRequests = 0
+    var notifier: Notifier {
+        Notifier(requestAccess: { [self] in accessRequests += 1 }, send: { [self] _, body in sent.append(body) })
+    }
+}
+
 @MainActor
 struct AppModelTests {
     private let defaults = MemoryDefaults()
@@ -192,5 +203,70 @@ struct AppModelTests {
         #expect(model.waypoints.count == 2 && model.routePath.count == 2)
         model.mode = .route
         #expect(model.waypoints.count == 2 && model.routePath.count == 2)
+    }
+
+    // MARK: connection loss
+
+    private func simulatingModel(_ recorder: RecordingNotifier) -> AppModel {
+        let model = AppModel(defaults: defaults, notifier: recorder.notifier)
+        model.followRoads = false
+        model.devices = [Device(id: "phone", name: "iPhone", model: "iPhone", connected: true)]
+        model.selectedDeviceID = "phone"
+        model.isSimulating = true
+        model.noteSimulating(on: "phone")
+        return model
+    }
+
+    @Test func aLostIPhoneIsAnnouncedOnceItStaysAway() {
+        let recorder = RecordingNotifier()
+        let model = simulatingModel(recorder)
+        let t0 = Date(timeIntervalSince1970: 2_000_000)
+        model.devices = []
+        model.observeConnection(now: t0)
+        model.observeConnection(now: t0.addingTimeInterval(6))
+        #expect(recorder.sent.isEmpty)                                       // not away long enough
+        model.observeConnection(now: t0.addingTimeInterval(12))
+        #expect(recorder.sent.count == 1)
+        #expect(model.status.contains("Lost the connection") || model.status.contains("abgebrochen"))
+        model.devices = [Device(id: "phone", name: "iPhone", model: "iPhone", connected: true)]
+        model.observeConnection(now: t0.addingTimeInterval(20))
+        #expect(recorder.sent.count == 1)                                    // coming back is no notification
+    }
+
+    @Test func aBriefDropAndASilentAppDoNotNotify() {
+        let recorder = RecordingNotifier()
+        let model = simulatingModel(recorder)
+        let t0 = Date(timeIntervalSince1970: 2_000_000)
+        model.devices = []
+        model.observeConnection(now: t0)
+        model.devices = [Device(id: "phone", name: "iPhone", model: "iPhone", connected: true)]
+        model.observeConnection(now: t0.addingTimeInterval(6))               // back in time
+        model.devices = []
+        model.observeConnection(now: t0.addingTimeInterval(100))
+        model.isSimulating = false                                           // nothing simulated: nothing to lose
+        model.observeConnection(now: t0.addingTimeInterval(200))
+        #expect(recorder.sent.isEmpty)
+    }
+
+    @Test func notificationsAreRequestedOnlyOnce() {
+        let recorder = RecordingNotifier()
+        let model = simulatingModel(recorder)
+        model.noteSimulating(on: "phone")
+        model.noteSimulating(on: "phone")
+        #expect(recorder.accessRequests == 1)
+    }
+
+    @Test func anInterruptedRouteNotifiesAtOnceUnlessItKeepsHappening() {
+        let recorder = RecordingNotifier()
+        let model = simulatingModel(recorder)
+        let t0 = Date(timeIntervalSince1970: 2_000_000)
+        for i in 0..<4 {
+            model.connectionInterrupted(now: t0.addingTimeInterval(Double(i) * 60))
+            model.connectionWatch.clearObservation()                         // as if the iPhone came back between
+            if i == 2 {                                                      // the first loss that is no longer notified
+                #expect(model.status.contains("keeps dropping") || model.status.contains("immer wieder"))
+            }
+        }
+        #expect(recorder.sent.count == 2)                                    // the third and fourth are silent
     }
 }

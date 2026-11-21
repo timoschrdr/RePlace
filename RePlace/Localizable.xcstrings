@@ -1090,6 +1090,36 @@
           }
         }
       }
+    },
+    "Lost the connection to your iPhone. The simulation may still be active on it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verbindung zu deinem iPhone ist abgebrochen. Die Simulation ist womöglich noch aktiv."
+          }
+        }
+      }
+    },
+    "The connection keeps dropping. Further alerts are paused for 10 minutes.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verbindung bricht immer wieder ab. Weitere Meldungen pausieren 10 Minuten."
+          }
+        }
+      }
+    },
+    "Your iPhone is connected again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein iPhone ist wieder verbunden."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

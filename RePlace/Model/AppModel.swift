@@ -102,6 +102,11 @@ final class AppModel {
     static let maxRoutedWaypoints = 25
 
     let defaults: UserDefaults
+    let notifier: Notifier
+    /// The device the simulation was sent to, and the watch that decides about alerts for it.
+    var simulatedDeviceID: String?
+    var connectionWatch = ConnectionWatch()
+    var notificationsRequested = false
     var routeTask: Task<Void, Never>?
     var refreshTask: Task<Void, Never>?
     var sleepActivity: NSObjectProtocol?
@@ -126,8 +131,9 @@ final class AppModel {
         var waypoints: [Spot]
     }
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, notifier: Notifier = .system) {
         self.defaults = defaults
+        self.notifier = notifier
         if let data = defaults.data(forKey: Key.favorites),
            let saved = try? JSONDecoder().decode([Favorite].self, from: data) {
             favorites = saved
@@ -177,6 +183,7 @@ final class AppModel {
         if selectedDeviceID == nil || !devices.contains(where: { $0.id == selectedDeviceID }) {
             selectedDeviceID = devices.first?.id
         }
+        observeConnection()
         let noDevice = String(localized: "No iPhone connected. Plug it in, unlock it and reload.")
         if devices.isEmpty {
             if announce || hadDevices { status = noDevice }

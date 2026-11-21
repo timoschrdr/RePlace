@@ -13,7 +13,10 @@ struct RePlaceApp: App {
         }
         .commands {
             CommandGroup(after: .appInfo) {
-                Button("Check for Updates…") { NSWorkspace.shared.open(Self.releasesURL) }
+                // The arrow shows that this opens the GitHub releases page in the browser.
+                Button("Check for Updates…", systemImage: "arrow.up.right.square") {
+                    NSWorkspace.shared.open(Self.releasesURL)
+                }
             }
             CommandGroup(after: .undoRedo) {
                 Button("Undo Last Waypoint") { model.undoWaypoints() }

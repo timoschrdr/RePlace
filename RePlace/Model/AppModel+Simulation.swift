@@ -34,6 +34,7 @@ extension AppModel {
         }
         if result.ok {
             isSimulating = true
+            noteSimulating(on: device)
             routeStartedAt = nil
             routeFinishedAt = nil
             markLocationSet()
@@ -53,6 +54,8 @@ extension AppModel {
         let result = await DeviceCtl.retrying { await DeviceCtl.clearLocation(device: device) }
         if result.ok {
             isSimulating = false
+            simulatedDeviceID = nil
+            connectionWatch.clearObservation()
             movingPosition = nil
             progress = 0
             routeStartedAt = nil
@@ -168,9 +171,11 @@ extension AppModel {
                 status = Task.isCancelled
                     ? String(localized: "Route paused. Your iPhone stays at the last position.")
                     : DeviceError.message(for: result.output)
+                if !Task.isCancelled, DeviceError.isConnectionLoss(result.output) { connectionInterrupted() }
                 return
             }
             isSimulating = true
+            if simulatedDeviceID != device { noteSimulating(on: device) }
             movingPosition = stop.spot
             travelled = base + stop.distance
             progress = total > 0 ? min(travelled / total, 1) : 1

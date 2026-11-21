@@ -7,6 +7,8 @@ struct DeviceSection: View {
         VStack(alignment: .leading, spacing: 8) {
             SectionTitle("Device")
             HStack(spacing: 8) {
+                deviceSymbols
+
                 Menu {
                     Picker("Device", selection: $model.selectedDeviceID) {
                         ForEach(model.devices) { device in
@@ -21,15 +23,9 @@ struct DeviceSection: View {
                     .labelsHidden()
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "iphone")
-                            .foregroundStyle(.secondary)
                         Text(selectedLabel)
                             .lineLimit(1)
                             .truncationMode(.middle)
-                        Spacer(minLength: 4)
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
                     }
                     .contentShape(.rect)
                 }
@@ -38,14 +34,6 @@ struct DeviceSection: View {
                 .tint(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .disabled(model.devices.isEmpty)
-
-                if let transport = selectedDevice?.transport, let symbol = transport.symbol {
-                    Image(systemName: symbol)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color.brand)
-                        .help(transport.explanation ?? "")
-                        .accessibilityLabel(transport.explanation ?? "")
-                }
 
                 Button {
                     Task { await model.refreshDevices() }
@@ -57,6 +45,23 @@ struct DeviceSection: View {
                 .accessibilityLabel("Reload devices")
             }
             .pill()
+        }
+    }
+
+    /// The device symbol, with a smaller one for the connection (cable or network) next to it. A menu
+    /// draws only the first image of its label, so both sit beside the menu. The connection symbol
+    /// is deliberately not colored, so it does not look like a warning.
+    private var deviceSymbols: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "iphone")
+                .foregroundStyle(.secondary)
+            if let transport = selectedDevice?.transport, let symbol = transport.symbol {
+                Image(systemName: symbol)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .help(transport.explanation ?? "")
+                    .accessibilityLabel(transport.explanation ?? "")
+            }
         }
     }
 

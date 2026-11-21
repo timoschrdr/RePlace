@@ -33,3 +33,14 @@ struct DeviceTransportTests {
         #expect(Device.Transport.wired.explanation != nil && Device.Transport.network.explanation != nil)
     }
 }
+
+@MainActor
+struct DeviceErrorKindTests {
+    @Test func onlyAGoneConnectionCountsAsALoss() {
+        #expect(DeviceError.isConnectionLoss("A connection to a remote process could not be established"))
+        #expect(DeviceError.isConnectionLoss("The operation timed out"))
+        #expect(!DeviceError.isConnectionLoss("The device is locked"))
+        #expect(!DeviceError.isConnectionLoss("Developer Mode is disabled"))
+        #expect(!DeviceError.isConnectionLoss("something odd"))
+    }
+}

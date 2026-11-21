@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UserNotifications
 
 /// The app icons the user can choose from in the settings. The raccoon is the icon of the app
 /// itself; the others (the previous "legacy" raccoon, the grey raccoon and the pin) are
@@ -58,13 +59,19 @@ enum AppIcon {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     /// The model of the running app, set by the window; needed to end the simulation on quit.
     static var model: AppModel?
     /// The setting "Reset the simulation when quitting".
     static let resetOnQuitKey = "resetOnQuit"
 
     private var appearanceObservation: NSKeyValueObservation?
+
+    /// Show the banner even while RePlace. is in front: the user may be looking at the map.
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                            withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound])
+    }
 
     /// If the user asked for it, the simulation is ended before the app quits, so the iPhone does not
     /// keep a fake location without anything to end it.
@@ -79,6 +86,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        UNUserNotificationCenter.current().delegate = self
         AppIcon.apply()
         // The Dock icon does not follow light/dark mode by itself when it is set from code.
         appearanceObservation = NSApp.observe(\.effectiveAppearance) { _, _ in
