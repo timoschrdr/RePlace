@@ -23,7 +23,7 @@ struct SidebarView: View {
                     FavoritesSection(model: model)
                 }
                 .padding(20)
-                .animation(.smooth, value: model.mode)
+                .animation(.calm, value: model.mode)
             }
             .scrollIndicators(.hidden)
 

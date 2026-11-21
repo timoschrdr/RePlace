@@ -1,7 +1,7 @@
 import MapKit
 import SwiftUI
 
-/// The window: the map fills it, the floating sidebar and the status pill lie on top.
+/// The window: the map fills it, the floating sidebar, the map buttons and the status pill lie on top.
 struct ContentView: View {
     let model: AppModel
     @State private var visibleRegion: MKCoordinateRegion?
@@ -11,6 +11,7 @@ struct ContentView: View {
             span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
         )
     )
+    @AppStorage(MapStyleChoice.storageKey) private var mapStyleRaw = MapStyleChoice.standard.rawValue
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -28,30 +29,87 @@ struct ContentView: View {
                 .glassEffect(.regular.tint(Color.brand.opacity(0.07)), in: .rect(cornerRadius: 28, style: .continuous))
                 .padding(12)
         }
+        .overlay(alignment: .topTrailing) { mapButtons }
         .overlay(alignment: .bottom) { StatusPill(model: model) }
         .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         .navigationTitle("RePlace.")
         .tint(.brand)
-        .task { await model.refreshDevices() }
+        .task {
+            await model.refreshDevices()
+            // Notice an iPhone being plugged in or removed without pressing reload.
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(6))
+                await model.refreshDevices(announce: false)
+            }
+        }
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let url = urls.first(where: { $0.pathExtension.lowercased() == "gpx" }) else { return false }
+            GPXFiles.importFile(at: url, into: model)
+            return true
+        }
         .onChange(of: model.movingPosition) { _, new in
             guard let new else { return }
             withAnimation(.linear(duration: 0.9)) { position = Self.region(around: new, span: 0.008) }
         }
         .onChange(of: model.spot) { _, new in
             guard let new else { return }
-            withAnimation(.smooth) { position = Self.region(around: new, span: 0.02) }
+            withAnimation(.calm) { position = Self.region(around: new, span: 0.02) }
         }
         .onChange(of: model.isCalculatingRoute) { _, calculating in
-            if !calculating { showRouteIfHidden() }
+            if !calculating { showRoute(onlyIfHidden: true) }
         }
     }
 
-    /// Moves the map to the planned route, unless all of it is in view already.
-    private func showRouteIfHidden() {
+    // MARK: Map buttons
+
+    /// Round glass buttons in the corner of the map: switch between map and satellite, and "show the whole route".
+    private var mapButtons: some View {
+        VStack(spacing: 10) {
+            Button {
+                withAnimation(.calm) {
+                    mapStyleRaw = (mapStyleRaw == MapStyleChoice.standard.rawValue ? MapStyleChoice.satellite : .standard).rawValue
+                }
+            } label: {
+                glassIcon(mapStyleRaw == MapStyleChoice.standard.rawValue ? "globe.europe.africa" : "map")
+            }
+            .buttonStyle(.plain)
+            .help("Map style")
+            .accessibilityLabel("Map style")
+            .accessibilityValue(Text((MapStyleChoice(rawValue: mapStyleRaw) ?? .standard).title))
+
+            Button {
+                showRoute(onlyIfHidden: false)
+            } label: {
+                glassIcon("scope")
+            }
+            .buttonStyle(.plain)
+            .disabled(!canShowRoute)
+            .opacity(canShowRoute ? 1 : 0.4)
+            .help("Show the whole route")
+            .accessibilityLabel("Show the whole route")
+        }
+        .padding(.top, 14)
+        .padding(.trailing, 14)
+    }
+
+    private var canShowRoute: Bool { model.mode == .route && model.routePath.count >= 2 }
+
+    private func glassIcon(_ name: String) -> some View {
+        Image(systemName: name)
+            .font(.system(size: 15, weight: .semibold))
+            .frame(width: 38, height: 38)
+            .glassEffect(.regular, in: .circle)
+            .contentShape(.circle)
+    }
+
+    // MARK: Camera
+
+    /// Moves the map to the planned route; with `onlyIfHidden` only if part of it is out of view.
+    private func showRoute(onlyIfHidden: Bool) {
         let path = model.routePath
-        guard !model.isRouteActive, path.count > 1 else { return }
-        if let visibleRegion, path.allSatisfy(visibleRegion.contains) { return }
-        withAnimation(.smooth) { position = Self.region(fitting: path) }
+        guard model.mode == .route, !model.isRouteActive || !onlyIfHidden, path.count > 1 else { return }
+        if onlyIfHidden, let visibleRegion, path.allSatisfy(visibleRegion.contains) { return }
+        withAnimation(.calm) { position = Self.region(fitting: path) }
     }
 
     /// A region that shows the whole path with some room around it.

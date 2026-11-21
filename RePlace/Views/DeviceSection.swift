@@ -10,7 +10,11 @@ struct DeviceSection: View {
                 Menu {
                     Picker("Device", selection: $model.selectedDeviceID) {
                         ForEach(model.devices) { device in
-                            Text(device.label).tag(Optional(device.id))
+                            if let symbol = device.transport.symbol {
+                                Label(device.label, systemImage: symbol).tag(Optional(device.id))
+                            } else {
+                                Text(device.label).tag(Optional(device.id))
+                            }
                         }
                     }
                     .pickerStyle(.inline)
@@ -35,6 +39,14 @@ struct DeviceSection: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .disabled(model.devices.isEmpty)
 
+                if let transport = selectedDevice?.transport, let symbol = transport.symbol {
+                    Image(systemName: symbol)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.brand)
+                        .help(transport.explanation ?? "")
+                        .accessibilityLabel(transport.explanation ?? "")
+                }
+
                 Button {
                     Task { await model.refreshDevices() }
                 } label: {
@@ -42,13 +54,17 @@ struct DeviceSection: View {
                 }
                 .buttonStyle(.circle)
                 .help("Reload devices")
+                .accessibilityLabel("Reload devices")
             }
             .pill()
         }
     }
 
+    private var selectedDevice: Device? {
+        model.devices.first { $0.id == model.selectedDeviceID }
+    }
+
     private var selectedLabel: String {
-        model.devices.first { $0.id == model.selectedDeviceID }?.label
-            ?? String(localized: "No iPhone connected")
+        selectedDevice?.label ?? String(localized: "No iPhone connected")
     }
 }

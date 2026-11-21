@@ -191,16 +191,6 @@
         }
       }
     },
-    "Save current location (name = search field)": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktuellen Ort speichern (Name = Suchfeld)"
-          }
-        }
-      }
-    },
     "Delete": {
       "localizations": {
         "de": {
@@ -681,16 +671,6 @@
         }
       }
     },
-    "Shortcuts: ⌘↩ main button, ⌘R reset, ⌥⌘Z undo last waypoint. Drag a numbered pin on the map to move a waypoint.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kurzbefehle: ⌘↩ Hauptknopf, ⌘R Zurücksetzen, ⌥⌘Z letzten Wegpunkt rückgängig. Zum Verschieben eines Wegpunkts die nummerierte Nadel auf der Karte ziehen."
-          }
-        }
-      }
-    },
     "No iPhone connected": {
       "localizations": {
         "de": {
@@ -737,6 +717,376 @@
           "stringUnit": {
             "state": "translated",
             "value": "Version %@"
+          }
+        }
+      }
+    },
+    "Turn on Developer Mode on your iPhone (Settings → Privacy & Security).": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schalte den Entwicklermodus auf deinem iPhone ein (Einstellungen → Datenschutz & Sicherheit)."
+          }
+        }
+      }
+    },
+    "Your iPhone is locked. Unlock it and try again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein iPhone ist gesperrt. Entsperre es und versuche es erneut."
+          }
+        }
+      }
+    },
+    "Your iPhone is not paired with this Mac. Connect it and tap Trust.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein iPhone ist nicht mit diesem Mac gekoppelt. Verbinde es und tippe auf „Vertrauen“."
+          }
+        }
+      }
+    },
+    "Your iPhone did not respond in time. Check the connection and try again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein iPhone hat nicht rechtzeitig geantwortet. Prüfe die Verbindung und versuche es erneut."
+          }
+        }
+      }
+    },
+    "The connection to your iPhone was interrupted. Reconnect it and try again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verbindung zu deinem iPhone wurde unterbrochen. Verbinde es erneut und versuche es noch einmal."
+          }
+        }
+      }
+    },
+    "A location was set %@ and may still be active. Press Reset to end it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Standort wurde %@ gesetzt und ist womöglich noch aktiv. Drücke „Zurücksetzen“, um ihn zu beenden."
+          }
+        }
+      }
+    },
+    "That file has no route with at least two points.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Datei enthält keine Route mit mindestens zwei Punkten."
+          }
+        }
+      }
+    },
+    "Imported a route with %lld points.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route mit %lld Punkten importiert."
+          }
+        }
+      }
+    },
+    "Route %lld · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route %lld · %@"
+          }
+        }
+      }
+    },
+    "Choose a GPX file with a route.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle eine GPX-Datei mit einer Route."
+          }
+        }
+      }
+    },
+    "The file could not be read.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Datei konnte nicht gelesen werden."
+          }
+        }
+      }
+    },
+    "The file could not be saved.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Datei konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "Route exported.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route exportiert."
+          }
+        }
+      }
+    },
+    "Check for Updates…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Updates suchen …"
+          }
+        }
+      }
+    },
+    "Import GPX…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPX importieren …"
+          }
+        }
+      }
+    },
+    "Export Route as GPX…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route als GPX exportieren …"
+          }
+        }
+      }
+    },
+    "GPX import and export": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPX-Import und -Export"
+          }
+        }
+      }
+    },
+    "Saved routes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Routen"
+          }
+        }
+      }
+    },
+    "Save this route": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Route speichern"
+          }
+        }
+      }
+    },
+    "Save a route with + to use it again later. You can also import GPX files, or drop one on the window.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichere eine Route mit +, um sie später wieder zu nutzen. Du kannst auch GPX-Dateien importieren oder eine auf das Fenster ziehen."
+          }
+        }
+      }
+    },
+    "Save current location": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuellen Ort speichern"
+          }
+        }
+      }
+    },
+    "Clear search": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche leeren"
+          }
+        }
+      }
+    },
+    "Map": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karte"
+          }
+        }
+      }
+    },
+    "Satellite": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Satellit"
+          }
+        }
+      }
+    },
+    "Show the whole route": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganze Route anzeigen"
+          }
+        }
+      }
+    },
+    "Walking": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gehen"
+          }
+        }
+      }
+    },
+    "Cycling": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radfahren"
+          }
+        }
+      }
+    },
+    "Driving": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autofahren"
+          }
+        }
+      }
+    },
+    "Motorway": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autobahn"
+          }
+        }
+      }
+    },
+    "Waypoint %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wegpunkt %lld"
+          }
+        }
+      }
+    },
+    "Remove waypoint %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wegpunkt %lld entfernen"
+          }
+        }
+      }
+    },
+    "Reset when quitting": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Beenden zurücksetzen"
+          }
+        }
+      }
+    },
+    "Ends the simulation when you quit RePlace., so your iPhone does not keep a fake location.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beendet die Simulation, wenn du RePlace. beendest, damit dein iPhone keinen falschen Standort behält."
+          }
+        }
+      }
+    },
+    "Shortcuts: ⌘↩ main button, ⌘R reset, ⌥⌘Z undo last waypoint, ⌘O import GPX, ⌘E export. Drag a numbered pin on the map to move a waypoint.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurzbefehle: ⌘↩ Hauptknopf, ⌘R Zurücksetzen, ⌥⌘Z letzten Wegpunkt rückgängig, ⌘O GPX importieren, ⌘E exportieren. Zum Verschieben eines Wegpunkts die nummerierte Nadel auf der Karte ziehen."
+          }
+        }
+      }
+    },
+    "Map style": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kartenstil"
+          }
+        }
+      }
+    },
+    "Connected with a cable": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per Kabel verbunden"
+          }
+        }
+      }
+    },
+    "Connected over the network (Wi-Fi)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über das Netzwerk (WLAN) verbunden"
           }
         }
       }

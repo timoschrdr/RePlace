@@ -9,6 +9,7 @@ struct MapPane: View {
     /// The part of the world that is currently visible.
     @Binding var visibleRegion: MKCoordinateRegion?
     @State private var draggedWaypoint: Int?
+    @AppStorage(MapStyleChoice.storageKey) private var mapStyleRaw = MapStyleChoice.standard.rawValue
 
     var body: some View {
         MapReader { proxy in
@@ -17,29 +18,35 @@ struct MapPane: View {
                     Marker("Target", systemImage: "mappin", coordinate: spot.coordinate)
                         .tint(Color.brand)
                 }
-                if model.routePath.count > 1 {
-                    // A light casing under the colored line keeps it readable on every map color.
-                    MapPolyline(coordinates: model.routePath.map(\.coordinate))
-                        .stroke(.white.opacity(0.55), lineWidth: 9)
-                    MapPolyline(coordinates: model.routePath.map(\.coordinate))
-                        .stroke(Color.brand, lineWidth: 5)
-                }
-                ForEach(Array(model.waypoints.enumerated()), id: \.offset) { index, waypoint in
-                    Annotation("", coordinate: waypoint.coordinate) {
-                        WaypointPin(number: index + 1, isLifted: draggedWaypoint == index)
-                            .gesture(drag(index, proxy: proxy), isEnabled: !model.isRouteActive)
+                // The route, its pins and the moving position only show in route mode; switching
+                // back to "Point" hides them, and they return when "Route" is chosen again.
+                if model.mode == .route {
+                    if model.routePath.count > 1 {
+                        // A light casing under the colored line keeps it readable on every map color.
+                        MapPolyline(coordinates: model.routePath.map(\.coordinate))
+                            .stroke(.white.opacity(0.55), lineWidth: 9)
+                        MapPolyline(coordinates: model.routePath.map(\.coordinate))
+                            .stroke(Color.brand, lineWidth: 5)
                     }
-                }
-                if let current = model.movingPosition {
-                    Annotation("", coordinate: current.coordinate) {
-                        Circle()
-                            .fill(.blue)
-                            .frame(width: 16, height: 16)
-                            .overlay(Circle().stroke(.white, lineWidth: 3))
-                            .shadow(radius: 2)
+                    ForEach(Array(model.waypoints.enumerated()), id: \.offset) { index, waypoint in
+                        Annotation("", coordinate: waypoint.coordinate) {
+                            WaypointPin(number: index + 1, isLifted: draggedWaypoint == index)
+                                .gesture(drag(index, proxy: proxy), isEnabled: !model.isRouteActive)
+                                .accessibilityLabel("Waypoint \(index + 1)")
+                        }
+                    }
+                    if let current = model.movingPosition {
+                        Annotation("", coordinate: current.coordinate) {
+                            Circle()
+                                .fill(.blue)
+                                .frame(width: 16, height: 16)
+                                .overlay(Circle().stroke(.white, lineWidth: 3))
+                                .shadow(radius: 2)
+                        }
                     }
                 }
             }
+            .mapStyle((MapStyleChoice(rawValue: mapStyleRaw) ?? .standard).style)
             .mapControls {
                 MapCompass()
                 MapZoomStepper()
@@ -86,6 +93,6 @@ private struct WaypointPin: View {
             .overlay(Circle().strokeBorder(.white, lineWidth: 2.5))
             .shadow(color: .black.opacity(isLifted ? 0.4 : 0.25), radius: isLifted ? 8 : 3, y: isLifted ? 6 : 2)
             .scaleEffect(isLifted ? 1.18 : 1)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isLifted)
+            .animation(.calmSpring, value: isLifted)
     }
 }

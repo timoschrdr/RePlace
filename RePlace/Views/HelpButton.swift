@@ -13,6 +13,7 @@ struct HelpButton: View {
             }
             .buttonStyle(.circle)
             .help("Help")
+            .accessibilityLabel("Help")
             .popover(isPresented: $isShown, arrowEdge: .top) { content }
             Spacer()
         }
@@ -33,7 +34,7 @@ struct HelpButton: View {
                 row("arrow.uturn.backward.circle.fill", "“Reset” brings back your real location. The simulation also ends when the connection is lost.")
             }
             Divider()
-            Text("Shortcuts: ⌘↩ main button, ⌘R reset, ⌥⌘Z undo last waypoint. Drag a numbered pin on the map to move a waypoint.")
+            Text("Shortcuts: ⌘↩ main button, ⌘R reset, ⌥⌘Z undo last waypoint, ⌘O import GPX, ⌘E export. Drag a numbered pin on the map to move a waypoint.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

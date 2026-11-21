@@ -31,17 +31,21 @@ Open `RePlace.xcodeproj` in Xcode, choose **My Mac** and press ⌘R. It is signe
 
 ## Usage
 
-**Point:** choose your iPhone, click the map, search an address or enter `latitude, longitude`, then press **Set Location**. The sidebar shows when it was set. **Reset** brings back the real location; the simulation also ends when the connection is lost.
+**Point:** choose your iPhone (a small symbol shows whether it is connected by cable or over the network), search an address (suggestions appear while you type), click the map or enter `latitude, longitude` (decimal commas work too), then press **Set Location**. The sidebar shows when it was set. **Reset** brings back the real location; the simulation also ends when the connection is lost. It stays on the iPhone if you just quit the app, so RePlace. tells you at the next start; **Settings** can reset it for you when you quit.
 
-**Route:** switch to **Route** and click the map (or pick a place) to add waypoints. Drag a pin to move it, undo with ⌥⌘Z. Choose a speed, then **Start Route**. The iPhone moves along the route and stops at the last waypoint. **Pause** and **Continue** work at any time, even with a different speed. The sidebar shows the estimated end time, which becomes the real arrival time.
+**Route:** switch to **Route** and click the map (or pick a place) to add waypoints. Drag a pin to move it, undo with ⌥⌘Z. Choose a speed, then **Start Route**. The iPhone moves along the route and stops at the last waypoint. **Pause** and **Continue** work at any time, even with a different speed. The sidebar shows the estimated end time, which becomes the real arrival time. Routes can be saved, **imported and exported as GPX** (menu *Simulation*, or drop a `.gpx` file on the window). The route and its pins only show in route mode. Your waypoints and settings are remembered.
 
 **Options** (folded away by default): **Follow roads** routes the whole trip from first to last waypoint with Apple Maps, so longer drives use the motorway, and waypoints only count where the route would otherwise miss them. **Prefer motorways** (from 20 km/h) takes a motorway route when one exists, even if a route through town is a little faster. A route can only join a motorway at its ramps, so for short trips click near an on-ramp and an exit. With **Follow roads** off, the path is a straight line through your clicks.
 
-**Shortcuts:** ⌘↩ main button, ⌘R reset, ⌥⌘Z undo last waypoint. **Settings** (⌘,) lets you pick another app icon for the Dock.
+**Shortcuts:** ⌘↩ main button, ⌘R reset, ⌥⌘Z undo, ⌘O import GPX, ⌘E export. The round buttons on the map switch between map and satellite and show the whole route. **Settings** (⌘,) lets you pick another app icon for the Dock.
+
+## Tests
+
+`⌘U` in Xcode runs the unit tests (coordinates, route geometry, speed scale, GPX, error messages and the model; no iPhone or network needed).
 
 ## Privacy
 
-RePlace. collects nothing and has no accounts, analytics or tracking. The map, address search and road routing come from Apple Maps, so search text and, with **Follow roads** on, waypoint coordinates are sent to Apple ([privacy policy](https://www.apple.com/legal/privacy/)). Coordinates reach only the iPhone you select, through `devicectl`. Favorites, the chosen icon and the time of the last location are stored locally in the app's preferences.
+RePlace. collects nothing and has no accounts, analytics or tracking. The map, address search and road routing come from Apple Maps, so search text and, with **Follow roads** on, waypoint coordinates are sent to Apple ([privacy policy](https://www.apple.com/legal/privacy/)). Coordinates reach only the iPhone you select, through `devicectl`. Favorites, saved routes, your last waypoints and settings, the chosen icon and the time of the last location are stored locally in the app's preferences.
 
 ## Responsible use
 

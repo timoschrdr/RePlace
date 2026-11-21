@@ -13,6 +13,7 @@ struct RouteSection: View {
                 SummaryCard(model: model)
                     .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
             }
+            SavedRoutesSection(model: model)
             Collapsible("Options") {
                 VStack(spacing: 14) {
                     SwitchRow("Follow roads", isOn: $model.followRoads)
@@ -23,11 +24,11 @@ struct RouteSection: View {
                 }
                 .disabled(model.isRouteActive)
                 .card()
-                .animation(.smooth, value: model.followRoads)
-                .animation(.smooth, value: model.isDriving)
+                .animation(.calm, value: model.followRoads)
+                .animation(.calm, value: model.isDriving)
             }
         }
-        .animation(.smooth, value: model.waypoints.count >= 2)
+        .animation(.calm, value: model.waypoints.count >= 2)
     }
 
     @ViewBuilder
@@ -49,21 +50,23 @@ struct RouteSection: View {
                         .padding(.vertical, 3)
                         .background(Color.brand.opacity(0.18), in: .capsule)
                     Button {
-                        withAnimation(.smooth) { model.undoWaypoints() }
+                        withAnimation(.calm) { model.undoWaypoints() }
                     } label: {
                         Image(systemName: "arrow.uturn.backward")
                     }
                     .buttonStyle(.circle)
                     .disabled(!model.canUndoWaypoints)
                     .help("Undo last waypoint (⌥⌘Z)")
+                    .accessibilityLabel("Undo last waypoint")
                     Button {
-                        withAnimation(.smooth) { model.clearWaypoints() }
+                        withAnimation(.calm) { model.clearWaypoints() }
                     } label: {
                         Image(systemName: "trash")
                     }
                     .buttonStyle(.circle)
                     .disabled(model.isRouteActive)
                     .help("Remove all waypoints")
+                    .accessibilityLabel("Remove all waypoints")
                 }
             } content: {
                 VStack(spacing: 6) {
@@ -78,13 +81,14 @@ struct RouteSection: View {
                                 .font(.system(.callout, design: .monospaced))
                             Spacer()
                             Button {
-                                withAnimation(.smooth) { model.removeWaypoint(at: index) }
+                                withAnimation(.calm) { model.removeWaypoint(at: index) }
                             } label: {
                                 Image(systemName: "xmark")
                             }
                             .buttonStyle(.circle)
                             .disabled(model.isRouteActive)
                             .help("Remove waypoint")
+                            .accessibilityLabel("Remove waypoint \(index + 1)")
                         }
                         .padding(.leading, 10)
                         .padding(.trailing, 6)
@@ -101,8 +105,8 @@ struct RouteSection: View {
 private struct SpeedCard: View {
     @Bindable var model: AppModel
 
-    private let presets: [(symbol: String, kmh: Double)] = [
-        ("figure.walk", 5), ("bicycle", 15), ("car.fill", 50), ("speedometer", 120),
+    private let presets: [(symbol: String, kmh: Double, name: LocalizedStringKey)] = [
+        ("figure.walk", 5, "Walking"), ("bicycle", 15, "Cycling"), ("car.fill", 50, "Driving"), ("speedometer", 120, "Motorway"),
     ]
 
     var body: some View {
@@ -115,20 +119,24 @@ private struct SpeedCard: View {
                     .font(.title3.weight(.semibold))
                     .monospacedDigit()
                     .contentTransition(.numericText())
-                    .animation(.smooth, value: model.speedKmh)
+                    .animation(.calm, value: model.speedKmh)
             }
             Slider(value: sliderPosition, in: 0...1)
                 .disabled(model.isMoving)
+                .accessibilityLabel("Speed")
+                .accessibilityValue("\(Int(model.speedKmh)) km/h")
             HStack(spacing: 6) {
                 ForEach(presets, id: \.kmh) { preset in
                     Button {
-                        withAnimation(.smooth) { model.speedKmh = preset.kmh }
+                        withAnimation(.calm) { model.speedKmh = preset.kmh }
                     } label: {
                         Label("\(Int(preset.kmh))", systemImage: preset.symbol)
                     }
                     .buttonStyle(ChipButtonStyle(isSelected: model.speedKmh == preset.kmh))
                     .disabled(model.isMoving)
                     .help("\(Int(preset.kmh)) km/h")
+                    .accessibilityLabel(Text(preset.name))
+                    .accessibilityValue("\(Int(preset.kmh)) km/h")
                 }
             }
         }
@@ -190,12 +198,12 @@ private struct SummaryCard: View {
             if model.isRouteActive || model.progress > 0 {
                 ProgressView(value: model.progress)
                     .tint(.brand)
-                    .animation(.smooth, value: model.progress)
+                    .animation(.calm, value: model.progress)
             }
         }
         .card()
-        .animation(.smooth, value: model.isCalculatingRoute)
-        .animation(.smooth, value: model.isRouteActive)
+        .animation(.calm, value: model.isCalculatingRoute)
+        .animation(.calm, value: model.isRouteActive)
     }
 
     private var distanceText: String {
@@ -206,5 +214,74 @@ private struct SummaryCard: View {
     private var durationText: String {
         Duration.seconds(Int(model.routeDuration))
             .formatted(.units(allowed: [.hours, .minutes, .seconds], width: .abbreviated, maximumUnitCount: 2))
+    }
+}
+
+/// Routes the user saved, and the GPX import and export.
+private struct SavedRoutesSection: View {
+    let model: AppModel
+
+    var body: some View {
+        Collapsible("Saved routes") {
+            HStack(spacing: 8) {
+                Menu {
+                    Button("Import GPX…") { GPXFiles.chooseAndImport(into: model) }
+                        .disabled(model.isRouteActive)
+                    Button("Export Route as GPX…") { GPXFiles.exportCurrentRoute(from: model) }
+                        .disabled(model.waypoints.count < 2)
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .menuStyle(.button)
+                .buttonStyle(.circle)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .accessibilityLabel("GPX import and export")
+                Button {
+                    withAnimation(.calm) { model.saveRoute() }
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .buttonStyle(.circle)
+                .disabled(model.waypoints.count < 2)
+                .help("Save this route")
+                .accessibilityLabel("Save this route")
+            }
+        } content: {
+            if model.savedRoutes.isEmpty {
+                Text("Save a route with + to use it again later. You can also import GPX files, or drop one on the window.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .card()
+            } else {
+                VStack(spacing: 4) {
+                    ForEach(model.savedRoutes) { route in
+                        Button {
+                            withAnimation(.calm) { model.load(route) }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                                    .foregroundStyle(LinearGradient.brand)
+                                Text(route.name).lineLimit(1)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 9)
+                            .contentShape(.capsule)
+                        }
+                        .buttonStyle(.plain)
+                        .background(Color.primary.opacity(0.06), in: .capsule)
+                        .disabled(model.isRouteActive)
+                        .contextMenu {
+                            Button("Delete", role: .destructive) {
+                                withAnimation(.calm) { model.removeSavedRoute(route) }
+                            }
+                        }
+                        .transition(.opacity.combined(with: .scale(scale: 0.97)))
+                    }
+                }
+            }
+        }
     }
 }

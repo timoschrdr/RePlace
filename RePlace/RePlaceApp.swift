@@ -9,8 +9,12 @@ struct RePlaceApp: App {
         WindowGroup {
             ContentView(model: model)
                 .frame(minWidth: 860, minHeight: 600)
+                .onAppear { AppDelegate.model = model }
         }
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { NSWorkspace.shared.open(Self.releasesURL) }
+            }
             CommandGroup(after: .undoRedo) {
                 Button("Undo Last Waypoint") { model.undoWaypoints() }
                     .keyboardShortcut("z", modifiers: [.command, .option])
@@ -24,6 +28,13 @@ struct RePlaceApp: App {
                     .keyboardShortcut("r", modifiers: .command)
                     .disabled(!model.canReset)
                 Divider()
+                Button("Import GPX…") { GPXFiles.chooseAndImport(into: model) }
+                    .keyboardShortcut("o", modifiers: .command)
+                    .disabled(model.isRouteActive)
+                Button("Export Route as GPX…") { GPXFiles.exportCurrentRoute(from: model) }
+                    .keyboardShortcut("e", modifiers: .command)
+                    .disabled(model.waypoints.count < 2)
+                Divider()
                 Button("Clear Waypoints") { model.clearWaypoints() }
                     .disabled(model.waypoints.isEmpty || model.isRouteActive)
             }
@@ -33,4 +44,6 @@ struct RePlaceApp: App {
             SettingsView()
         }
     }
+
+    private static let releasesURL = URL(string: "https://github.com/timoschrdr/RePlace/releases/latest")!
 }

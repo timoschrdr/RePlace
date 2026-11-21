@@ -23,17 +23,26 @@ nonisolated struct Spot: Equatable, Codable {
         self.longitude = longitude
     }
 
-    /// Reads "latitude, longitude" with a dot as decimal separator. Commas, spaces and
-    /// semicolons separate the two numbers, so decimal commas ("51,43 7,21") are not supported.
+    /// Reads a coordinate pair as people write it: "52.516275, 13.377704", "52.516275 13.377704",
+    /// "52.516275;13.377704" or with decimal commas ("52,516275 13,377704"). Between the numbers
+    /// there must be a space, a semicolon or a comma followed by a space; "52,5,13,4" is rejected
+    /// because it cannot be read unambiguously.
     init?(parsing text: String) {
-        let numbers = text
-            .replacingOccurrences(of: ",", with: " ")
-            .split(whereSeparator: { $0 == " " || $0 == ";" })
-            .compactMap { Double($0) }
-        guard numbers.count == 2,
-              (-90...90).contains(numbers[0]),
-              (-180...180).contains(numbers[1])
+        var cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        cleaned = cleaned.replacingOccurrences(of: ";", with: " ").replacingOccurrences(of: ", ", with: " ")
+        var tokens = cleaned.split(whereSeparator: \.isWhitespace).map(String.init)
+        if tokens.count == 1 {
+            // "52.5,13.4" without a space: a single comma separates the numbers.
+            let parts = tokens[0].split(separator: ",", omittingEmptySubsequences: false).map(String.init)
+            guard parts.count == 2 else { return nil }
+            tokens = parts
+        }
+        guard tokens.count == 2,
+              let latitude = Double(tokens[0].replacingOccurrences(of: ",", with: ".")),
+              let longitude = Double(tokens[1].replacingOccurrences(of: ",", with: ".")),
+              (-90...90).contains(latitude),
+              (-180...180).contains(longitude)
         else { return nil }
-        self.init(latitude: numbers[0], longitude: numbers[1])
+        self.init(latitude: latitude, longitude: longitude)
     }
 }

@@ -14,13 +14,13 @@ struct ModeSwitch: View {
         .background(Color.primary.opacity(0.08), in: .capsule)
         .frame(maxWidth: .infinity)
         .opacity(model.isRouteActive ? 0.5 : 1)
-        .animation(.smooth, value: model.isRouteActive)
+        .animation(.calm, value: model.isRouteActive)
     }
 
     private func button(_ title: LocalizedStringKey, _ value: TargetMode) -> some View {
         let selected = model.mode == value
         return Button {
-            withAnimation(.smooth(duration: 0.35)) { model.mode = value }
+            withAnimation(.calm) { model.mode = value }
         } label: {
             Text(title)
                 .font(.body.weight(.semibold))

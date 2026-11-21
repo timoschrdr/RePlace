@@ -6,19 +6,20 @@ struct FavoritesSection: View {
     var body: some View {
         Collapsible("Favorites", expanded: true) {
             Button {
-                withAnimation(.smooth) { model.addFavorite() }
+                withAnimation(.calm) { model.addFavorite() }
             } label: {
                 Image(systemName: "plus")
             }
             .buttonStyle(.circle)
             .disabled(model.spot == nil)
-            .help("Save current location (name = search field)")
+            .help("Save current location")
+            .accessibilityLabel("Save current location")
         } content: {
             VStack(spacing: 4) {
                 ForEach(model.favorites) { favorite in
                     let selected = model.spot == favorite.spot
                     Button {
-                        model.select(favorite.spot)
+                        model.select(favorite.spot, name: favorite.name)
                     } label: {
                         HStack(spacing: 10) {
                             Image(systemName: "star.fill")
@@ -33,10 +34,10 @@ struct FavoritesSection: View {
                     }
                     .buttonStyle(.plain)
                     .background(selected ? Color.brand.opacity(0.18) : Color.primary.opacity(0.06), in: .capsule)
-                    .animation(.smooth, value: selected)
+                    .animation(.calm, value: selected)
                     .contextMenu {
                         Button("Delete", role: .destructive) {
-                            withAnimation(.smooth) { model.removeFavorite(favorite) }
+                            withAnimation(.calm) { model.removeFavorite(favorite) }
                         }
                     }
                     .transition(.opacity.combined(with: .scale(scale: 0.97)))

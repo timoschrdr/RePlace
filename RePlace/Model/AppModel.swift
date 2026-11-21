@@ -3,8 +3,9 @@ import MapKit
 import Observation
 import SwiftUI
 
-/// The state of the app and the logic behind the buttons: the chosen device and place, the
-/// favorites, and the simulation of a single location or of a moving route.
+/// The state of the app and the logic behind the buttons. This file holds the chosen device and
+/// place, favorites, saved routes and the planning of a route; the simulation itself (sending
+/// positions to the iPhone) is in `AppModel+Simulation.swift`.
 @Observable
 final class AppModel {
     // MARK: Device and place
@@ -14,29 +15,53 @@ final class AppModel {
     var spot: Spot? {
         didSet { if let spot { coordText = spot.text } }
     }
+    /// Name of the chosen place if it came from a search or a favorite; used to name favorites.
+    var spotName: String?
     var coordText = ""
-    var query = ""
+    var query = "" {
+        didSet {
+            guard query != oldValue else { return }
+            suggestions.query = query
+            suggestionsVisible = !query.trimmingCharacters(in: .whitespaces).isEmpty
+            searchResults = []
+        }
+    }
+    let suggestions = SearchSuggestions()
+    var suggestionsVisible = false
     var searchResults: [MKMapItem] = []
     var favorites: [Favorite] = []
+    var savedRoutes: [SavedRoute] = []
     var status = String(localized: "Choose a device and a location.")
     var isBusy = false
     var isSimulating = false
 
     // MARK: Route settings and state
 
-    var mode: TargetMode = .point
+    var mode: TargetMode = .point {
+        didSet { saveSession() }
+    }
     var waypoints: [Spot] = [] {
-        didSet { scheduleRouteRefresh() }
+        didSet {
+            scheduleRouteRefresh()
+            saveSession()
+        }
     }
     var followRoads = true {
-        didSet { scheduleRouteRefresh() }
+        didSet {
+            scheduleRouteRefresh()
+            saveSession()
+        }
     }
     /// Take a motorway alternative over a faster route through town (driving speeds only).
     var preferMotorways = true {
-        didSet { scheduleRouteRefresh() }
+        didSet {
+            scheduleRouteRefresh()
+            saveSession()
+        }
     }
     var speedKmh = 5.0 {
         didSet {
+            saveSession()
             // Walking and driving use different road networks.
             if (oldValue >= Self.drivingThresholdKmh) != (speedKmh >= Self.drivingThresholdKmh) {
                 scheduleRouteRefresh()
@@ -63,28 +88,47 @@ final class AppModel {
     var routeStartedAt: Date?
     var routeFinishedAt: Date?
 
-    // MARK: Internals
+    // MARK: Internals (internal rather than private: shared with AppModel+Simulation.swift)
 
     /// From this speed on routes are planned for a car, below it for a pedestrian.
     static let drivingThresholdKmh = 20.0
     /// Seconds between two simulated positions.
-    private static let tick = 1.0
+    static let tick = 1.0
     /// A hang of devicectl longer than this many ticks moves the schedule instead of making the
     /// device jump far ahead.
-    private static let maxCatchUpTicks = 3
+    static let maxCatchUpTicks = 3
+    /// More waypoints than this switch "Follow roads" off after an import: routing hundreds of
+    /// points through Apple Maps would be slow and pointless.
+    static let maxRoutedWaypoints = 25
 
-    private let favoritesKey = "favorites"
-    private let lastSetKey = "lastSetAt"
-    private var routeTask: Task<Void, Never>?
-    private var refreshTask: Task<Void, Never>?
-    private var sleepActivity: NSObjectProtocol?
+    let defaults: UserDefaults
+    var routeTask: Task<Void, Never>?
+    var refreshTask: Task<Void, Never>?
+    var sleepActivity: NSObjectProtocol?
     /// Earlier states of the waypoint list, for undo.
     private var waypointHistory: [[Spot]] = []
     /// Meters of the route path the device has already covered.
-    private var travelled = 0.0
+    var travelled = 0.0
 
-    init() {
-        if let data = UserDefaults.standard.data(forKey: favoritesKey),
+    private enum Key {
+        static let favorites = "favorites"
+        static let savedRoutes = "savedRoutes"
+        static let lastSet = "lastSetAt"
+        static let session = "session"
+    }
+
+    /// What is remembered from one launch to the next.
+    private struct Session: Codable {
+        var mode: TargetMode
+        var speedKmh: Double
+        var followRoads: Bool
+        var preferMotorways: Bool
+        var waypoints: [Spot]
+    }
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let data = defaults.data(forKey: Key.favorites),
            let saved = try? JSONDecoder().decode([Favorite].self, from: data) {
             favorites = saved
         } else {
@@ -93,18 +137,51 @@ final class AppModel {
                 Favorite(name: "Eiffel Tower, Paris", spot: Spot(latitude: 48.858370, longitude: 2.294481)),
             ]
         }
-        lastSetAt = UserDefaults.standard.object(forKey: lastSetKey) as? Date
+        if let data = defaults.data(forKey: Key.savedRoutes),
+           let saved = try? JSONDecoder().decode([SavedRoute].self, from: data) {
+            savedRoutes = saved
+        }
+        if let data = defaults.data(forKey: Key.session),
+           let session = try? JSONDecoder().decode(Session.self, from: data) {
+            // Assigned in init, so the property observers (and with them the route planning) do not run yet.
+            mode = session.mode
+            speedKmh = min(max(session.speedKmh, SpeedScale.minimum), SpeedScale.maximum)
+            followRoads = session.followRoads
+            preferMotorways = session.preferMotorways
+            waypoints = session.waypoints
+        }
+        lastSetAt = defaults.object(forKey: Key.lastSet) as? Date
+        if let lastSetAt {
+            // The simulated location stays on the iPhone after the app quits, so be honest about it.
+            isSimulating = true
+            status = String(localized: "A location was set \(lastSetAt.stamp) and may still be active. Press Reset to end it.")
+        }
+        if !waypoints.isEmpty { scheduleRouteRefresh() }
+    }
+
+    private func saveSession() {
+        let session = Session(mode: mode, speedKmh: speedKmh, followRoads: followRoads,
+                              preferMotorways: preferMotorways, waypoints: waypoints)
+        if let data = try? JSONEncoder().encode(session) { defaults.set(data, forKey: Key.session) }
     }
 
     // MARK: Devices
 
-    func refreshDevices() async {
+    /// Reloads the list of connected iPhones. The quiet variant (used by the automatic refresh)
+    /// leaves the status line alone and does nothing while the iPhone is being sent positions, so
+    /// it does not compete with the simulation.
+    func refreshDevices(announce: Bool = true) async {
+        if !announce && (isMoving || isBusy) { return }
+        let hadDevices = !devices.isEmpty
         devices = await DeviceCtl.listDevices().filter(\.connected)
         if selectedDeviceID == nil || !devices.contains(where: { $0.id == selectedDeviceID }) {
             selectedDeviceID = devices.first?.id
         }
+        let noDevice = String(localized: "No iPhone connected. Plug it in, unlock it and reload.")
         if devices.isEmpty {
-            status = String(localized: "No iPhone connected. Plug it in, unlock it and reload.")
+            if announce || hadDevices { status = noDevice }
+        } else if !hadDevices, status == noDevice {
+            status = String(localized: "Choose a device and a location.")
         }
     }
 
@@ -115,12 +192,14 @@ final class AppModel {
             status = String(localized: "Invalid coordinates. Format: 52.516275, 13.377704")
             return
         }
+        spotName = nil
         spot = parsed
     }
 
     func search() async {
         let text = query.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
+        suggestionsVisible = false
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = text
         do {
@@ -135,6 +214,7 @@ final class AppModel {
     /// A click on the map: sets the target in point mode, adds a waypoint in route mode.
     /// The map is not recentered, because the user is already looking at that spot.
     func mapTapped(_ newSpot: Spot) {
+        spotName = nil
         if mode == .route {
             addWaypoint(newSpot)
         } else {
@@ -143,93 +223,84 @@ final class AppModel {
     }
 
     /// A place picked from the search results or the favorites. The map moves there.
-    func select(_ newSpot: Spot) {
+    func select(_ newSpot: Spot, name: String? = nil) {
         spot = newSpot
+        spotName = name
         if mode == .route { addWaypoint(newSpot) }
     }
 
     func choose(_ item: MKMapItem) {
         let coordinate = item.location.coordinate
-        select(Spot(latitude: coordinate.latitude, longitude: coordinate.longitude))
+        select(Spot(latitude: coordinate.latitude, longitude: coordinate.longitude), name: item.name)
         searchResults = []
+        if let name = item.name { query = name }
+        suggestionsVisible = false
     }
 
-    // MARK: Favorites
+    /// A suggestion from the list under the address field: look up where it is, then choose it.
+    func choose(_ suggestion: MKLocalSearchCompletion) async {
+        do {
+            let response = try await MKLocalSearch(request: MKLocalSearch.Request(completion: suggestion)).start()
+            if let item = response.mapItems.first { choose(item) }
+        } catch {
+            status = String(localized: "Search failed: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: Favorites and saved routes
 
     func addFavorite() {
         guard let spot else { return }
-        let name = query.trimmingCharacters(in: .whitespaces)
-        favorites.append(Favorite(name: name.isEmpty ? spot.text : name, spot: spot))
-        saveFavorites()
+        let name = spotName?.trimmingCharacters(in: .whitespaces)
+        favorites.append(Favorite(name: name?.isEmpty == false ? name! : spot.text, spot: spot))
+        save(favorites, key: Key.favorites)
     }
 
     func removeFavorite(_ favorite: Favorite) {
         favorites.removeAll { $0.id == favorite.id }
-        saveFavorites()
+        save(favorites, key: Key.favorites)
     }
 
-    private func saveFavorites() {
-        if let data = try? JSONEncoder().encode(favorites) {
-            UserDefaults.standard.set(data, forKey: favoritesKey)
+    func saveRoute() {
+        guard waypoints.count >= 2 else { return }
+        let distance = Measurement(value: routeDistance, unit: UnitLength.meters)
+            .formatted(.measurement(width: .abbreviated, usage: .road))
+        let name = String(localized: "Route \(savedRoutes.count + 1) · \(distance)")
+        savedRoutes.append(SavedRoute(name: name, waypoints: waypoints, speedKmh: speedKmh))
+        save(savedRoutes, key: Key.savedRoutes)
+    }
+
+    func removeSavedRoute(_ route: SavedRoute) {
+        savedRoutes.removeAll { $0.id == route.id }
+        save(savedRoutes, key: Key.savedRoutes)
+    }
+
+    func load(_ route: SavedRoute) {
+        guard !isRouteActive else { return }
+        recordWaypoints()
+        mode = .route
+        speedKmh = route.speedKmh
+        waypoints = route.waypoints
+    }
+
+    private func save<T: Encodable>(_ value: T, key: String) {
+        if let data = try? JSONEncoder().encode(value) { defaults.set(data, forKey: key) }
+    }
+
+    /// Uses the points of an imported file as the new route. Returns false if there are too few.
+    @discardableResult
+    func importRoute(_ spots: [Spot]) -> Bool {
+        guard !isRouteActive else { return false }
+        guard spots.count >= 2 else {
+            status = String(localized: "That file has no route with at least two points.")
+            return false
         }
-    }
-
-    // MARK: Single location
-
-    private static func errorStatus(_ output: String) -> String {
-        let detail = output.split(separator: "\n").last.map(String.init) ?? String(localized: "unknown")
-        return String(localized: "Error: \(detail)")
-    }
-
-    private func markLocationSet(at date: Date = .now) {
-        lastSetAt = date
-        UserDefaults.standard.set(date, forKey: lastSetKey)
-    }
-
-    private func clearLocationSet() {
-        lastSetAt = nil
-        UserDefaults.standard.removeObject(forKey: lastSetKey)
-    }
-
-    func apply() async {
-        guard let device = selectedDeviceID, let spot else { return }
-        await pauseRoute()
-        isPaused = false
-        isBusy = true
-        defer { isBusy = false }
-        let result = await DeviceCtl.retrying {
-            await DeviceCtl.setLocation(device: device, latitude: spot.latitude, longitude: spot.longitude)
-        }
-        if result.ok {
-            isSimulating = true
-            routeStartedAt = nil
-            routeFinishedAt = nil
-            markLocationSet()
-            status = String(localized: "Location set: \(spot.text)")
-        } else {
-            status = Self.errorStatus(result.output)
-        }
-    }
-
-    func reset() async {
-        guard let device = selectedDeviceID else { return }
-        await pauseRoute()
-        isPaused = false
-        travelled = 0
-        isBusy = true
-        defer { isBusy = false }
-        let result = await DeviceCtl.retrying { await DeviceCtl.clearLocation(device: device) }
-        if result.ok {
-            isSimulating = false
-            movingPosition = nil
-            progress = 0
-            routeStartedAt = nil
-            routeFinishedAt = nil
-            clearLocationSet()
-            status = String(localized: "Simulation stopped. Your iPhone uses its real location again.")
-        } else {
-            status = Self.errorStatus(result.output)
-        }
+        recordWaypoints()
+        mode = .route
+        if spots.count > Self.maxRoutedWaypoints { followRoads = false }
+        waypoints = spots
+        status = String(localized: "Imported a route with \(spots.count) points.")
+        return true
     }
 
     // MARK: Route: waypoints and estimates
@@ -254,8 +325,6 @@ final class AppModel {
     private func seconds(for distance: Double) -> Double {
         speedKmh > 0 ? distance / (speedKmh / 3.6) : 0
     }
-
-    // MARK: Route: waypoints
 
     var canUndoWaypoints: Bool { !waypointHistory.isEmpty && !isRouteActive }
 
@@ -338,7 +407,6 @@ final class AppModel {
         guard isPrimaryActionEnabled else { return }
         switch primaryAction {
         case .setLocation:
-            applyCoordText()
             Task { await apply() }
         case .startRoute, .resume:
             startRoute()
@@ -350,7 +418,7 @@ final class AppModel {
     // MARK: Route: planning
 
     /// Recomputes the route path after the waypoints, road mode or speed changed.
-    private func scheduleRouteRefresh() {
+    func scheduleRouteRefresh() {
         refreshTask?.cancel()
         guard !isRouteActive else { return }
         progress = 0
@@ -359,6 +427,7 @@ final class AppModel {
         routeFinishedAt = nil
         routePath = waypoints
         routeRoads = []
+        isCalculatingRoute = false
         guard followRoads, waypoints.count >= 2 else { return }
         refreshTask = Task {
             try? await Task.sleep(for: .milliseconds(400))  // debounce quick successive clicks
@@ -377,134 +446,7 @@ final class AppModel {
     }
 
     /// The route along roads, or nil if Apple Maps could not provide it.
-    private func plannedRoute() async -> PlannedRoute? {
+    func plannedRoute() async -> PlannedRoute? {
         await RoutePlanner.route(through: waypoints, driving: isDriving, preferMotorways: preferMotorways)
-    }
-
-    // MARK: Route: simulation
-
-    /// Starts the route from the beginning, or continues it after a pause.
-    func startRoute() {
-        guard let device = selectedDeviceID, waypoints.count >= 2, !isMoving else { return }
-        let resuming = isPaused
-        isPaused = false
-        isMoving = true  // set right away so the UI cannot start a second run
-        routeTask = Task { await runRoute(device: device, resuming: resuming) }
-    }
-
-    /// Pauses moving. The device stays at its current simulated position and the route can
-    /// be continued from there.
-    func pauseRoute() async {
-        routeTask?.cancel()
-        await routeTask?.value
-        routeTask = nil
-        isMoving = false
-    }
-
-    /// Keeps the Mac from going to sleep while a route runs; a sleeping Mac would stop it.
-    private func preventSleep() {
-        guard sleepActivity == nil else { return }
-        sleepActivity = ProcessInfo.processInfo.beginActivity(
-            options: [.idleSystemSleepDisabled, .userInitiated],
-            reason: "Simulating a route"
-        )
-    }
-
-    private func allowSleep() {
-        guard let activity = sleepActivity else { return }
-        ProcessInfo.processInfo.endActivity(activity)
-        sleepActivity = nil
-    }
-
-    private func runRoute(device: String, resuming: Bool) async {
-        preventSleep()
-        defer {
-            isMoving = false
-            allowSleep()
-        }
-        refreshTask?.cancel()
-        if !resuming {
-            progress = 0
-            travelled = 0
-            movingPosition = nil  // so a Pause before the first step is not "continuable"
-            routeStartedAt = .now
-            routeFinishedAt = nil
-        }
-
-        if !resuming, followRoads, routePath.count <= waypoints.count {
-            status = String(localized: "Calculating route…")
-            if let planned = await plannedRoute() {
-                routePath = planned.path
-                routeRoads = planned.roads
-            } else {
-                routePath = waypoints
-                routeRoads = []
-            }
-        }
-        guard !Task.isCancelled else { return }
-
-        // After a pause only the rest of the path is walked, so the speed may have changed.
-        let total = RouteMath.length(of: routePath)
-        let base = travelled
-        var stops = RouteMath.stops(
-            along: RouteMath.remainder(of: routePath, after: base),
-            every: max(speedKmh / 3.6 * Self.tick, 0.5)
-        )
-        if resuming, !stops.isEmpty { stops.removeFirst() }  // the device is already there
-
-        // The pace follows the clock, not the number of steps sent. A new position is due every
-        // `tick` seconds. If sending one takes longer (devicectl is sometimes slow), the next
-        // one skips ahead to where the device should be by now, so the average speed and the
-        // estimated end time stay correct. The last point is never skipped.
-        let clock = ContinuousClock()
-        var started = clock.now
-        let offset = resuming ? 1 : 0  // after a pause the first stop is one tick away
-        var index = 0
-
-        while index < stops.count {
-            if Task.isCancelled {
-                isPaused = movingPosition != nil
-                status = String(localized: "Route paused. Your iPhone stays at the last position.")
-                return
-            }
-            var due = Int(started.duration(to: clock.now) / .seconds(Self.tick)) - offset
-            if due - index > Self.maxCatchUpTicks {
-                started += .seconds(Double(due - index - Self.maxCatchUpTicks) * Self.tick)
-                due = index + Self.maxCatchUpTicks
-            }
-            index = min(max(index, due), stops.count - 1)
-            let stop = stops[index]
-
-            let result = await DeviceCtl.retrying {
-                await DeviceCtl.setLocation(device: device, latitude: stop.spot.latitude, longitude: stop.spot.longitude)
-            }
-            guard result.ok else {
-                // A step that fails because the user pressed Pause is not an error. Other
-                // failures also leave the route paused so it can be continued.
-                isPaused = movingPosition != nil
-                status = Task.isCancelled
-                    ? String(localized: "Route paused. Your iPhone stays at the last position.")
-                    : Self.errorStatus(result.output)
-                return
-            }
-            isSimulating = true
-            movingPosition = stop.spot
-            travelled = base + stop.distance
-            progress = total > 0 ? min(travelled / total, 1) : 1
-            let percent = "\(Int(progress * 100)) %"
-            status = String(localized: "Moving along the route: \(percent)")
-
-            index += 1
-            if index < stops.count {
-                try? await clock.sleep(until: started + .seconds(Double(index + offset) * Self.tick))
-            }
-        }
-
-        travelled = 0
-        progress = 1  // avoid a floating-point leftover such as 0.99999999
-        isPaused = false
-        routeFinishedAt = .now
-        markLocationSet()
-        status = String(localized: "Route finished. Your iPhone stays at the end point.")
     }
 }

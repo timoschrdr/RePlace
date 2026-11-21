@@ -28,6 +28,6 @@ struct PointSection: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
             }
         }
-        .animation(.smooth, value: model.lastSetAt)
+        .animation(.calm, value: model.lastSetAt)
     }
 }

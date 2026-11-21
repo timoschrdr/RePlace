@@ -2,10 +2,45 @@ import Foundation
 
 /// An iPhone (or other iOS device) known to CoreDevice.
 struct Device: Identifiable, Hashable {
+    /// How the device is connected. `devicectl` only tells "wired" and "localNetwork" (Wi-Fi
+    /// or another network); it does not report Bluetooth.
+    enum Transport: Hashable {
+        case wired
+        case network
+        case unknown
+
+        /// `connectionProperties.transportType` of the `devicectl` JSON.
+        init(devicectlValue: String?) {
+            switch devicectlValue {
+            case "wired": self = .wired
+            case "localNetwork": self = .network
+            default: self = .unknown
+            }
+        }
+
+        /// The SF Symbol for the connection, or nil if it is not known.
+        var symbol: String? {
+            switch self {
+            case .wired: "cable.connector"
+            case .network: "wifi"
+            case .unknown: nil
+            }
+        }
+
+        var explanation: String? {
+            switch self {
+            case .wired: String(localized: "Connected with a cable")
+            case .network: String(localized: "Connected over the network (Wi-Fi)")
+            case .unknown: nil
+            }
+        }
+    }
+
     let id: String
     let name: String
     let model: String
     let connected: Bool
+    var transport: Transport = .unknown
 
     var label: String { "\(name) (\(model))" }
 }
@@ -62,7 +97,8 @@ enum DeviceCtl {
                 id: id,
                 name: properties?["name"] as? String ?? "iPhone",
                 model: hardware?["marketingName"] as? String ?? "iOS",
-                connected: state != nil && state != "unavailable"
+                connected: state != nil && state != "unavailable",
+                transport: Device.Transport(devicectlValue: connection?["transportType"] as? String)
             )
         }
         .sorted { ($0.connected ? 0 : 1, $0.name) < ($1.connected ? 0 : 1, $1.name) }

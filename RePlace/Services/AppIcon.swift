@@ -59,7 +59,24 @@ enum AppIcon {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    /// The model of the running app, set by the window; needed to end the simulation on quit.
+    static var model: AppModel?
+    /// The setting "Reset the simulation when quitting".
+    static let resetOnQuitKey = "resetOnQuit"
+
     private var appearanceObservation: NSKeyValueObservation?
+
+    /// If the user asked for it, the simulation is ended before the app quits, so the iPhone does not
+    /// keep a fake location without anything to end it.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard UserDefaults.standard.bool(forKey: Self.resetOnQuitKey),
+              let model = Self.model, model.isSimulating, model.selectedDeviceID != nil else { return .terminateNow }
+        Task { @MainActor in
+            await model.reset()
+            sender.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppIcon.apply()

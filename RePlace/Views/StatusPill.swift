@@ -9,7 +9,7 @@ struct StatusPill: View {
             Circle()
                 .fill(color)
                 .frame(width: 9, height: 9)
-                .animation(.smooth, value: model.isSimulating)
+                .animation(.calm, value: model.isSimulating)
             Text(model.status)
                 .font(.callout)
                 .lineLimit(2)
@@ -20,7 +20,7 @@ struct StatusPill: View {
         .glassEffect(.regular, in: .capsule)
         .padding(.bottom, 20)
         .padding(.leading, Layout.mapInset)
-        .animation(.smooth, value: model.status)
+        .animation(.calm, value: model.status)
     }
 
     private var color: Color {

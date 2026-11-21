@@ -72,8 +72,8 @@ struct CapsuleButtonStyle: ButtonStyle {
             }
             .opacity(isEnabled ? 1 : 0.4)
             .scaleEffect(configuration.isPressed ? 0.96 : 1)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
-            .animation(.smooth, value: isEnabled)
+            .animation(.calmSpring, value: configuration.isPressed)
+            .animation(.calm, value: isEnabled)
     }
 }
 
@@ -88,7 +88,7 @@ struct CircleButtonStyle: ButtonStyle {
             .background(Color.primary.opacity(configuration.isPressed ? 0.20 : 0.10), in: .circle)
             .opacity(isEnabled ? 1 : 0.4)
             .scaleEffect(configuration.isPressed ? 0.9 : 1)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
+            .animation(.calmSpring, value: configuration.isPressed)
     }
 }
 
@@ -113,8 +113,8 @@ struct ChipButtonStyle: ButtonStyle {
             }
             .opacity(isEnabled ? 1 : 0.4)
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
-            .animation(.smooth, value: isSelected)
+            .animation(.calmSpring, value: configuration.isPressed)
+            .animation(.calm, value: isSelected)
     }
 }
 
@@ -227,7 +227,7 @@ struct Collapsible<Accessory: View, Content: View>: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Button {
-                    withAnimation(.smooth(duration: 0.35)) { isExpanded.toggle() }
+                    withAnimation(.calm) { isExpanded.toggle() }
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.right")

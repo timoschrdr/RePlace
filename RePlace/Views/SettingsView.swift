@@ -4,6 +4,7 @@ import SwiftUI
 /// tag; the older icons are collected below it as "Legacy" and need no names.
 struct SettingsView: View {
     @AppStorage(AppIcon.storageKey) private var choice = AppIconChoice.raccoon.rawValue
+    @AppStorage(AppDelegate.resetOnQuitKey) private var resetOnQuit = false
     @Environment(\.colorScheme) private var colorScheme
 
     /// The version of the app, e.g. "1.2.0".
@@ -29,6 +30,16 @@ struct SettingsView: View {
                 }
             }
 
+            VStack(alignment: .leading, spacing: 10) {
+                SectionTitle("Simulation")
+                SwitchRow("Reset when quitting", isOn: $resetOnQuit)
+                    .card()
+                Text("Ends the simulation when you quit RePlace., so your iPhone does not keep a fake location.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             Text("Changes the icon in the Dock while RePlace. is running. The icon in Finder and in the Applications folder stays the same.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -37,7 +48,7 @@ struct SettingsView: View {
         .padding(28)
         .frame(width: 440)
         .tint(.brand)
-        .animation(.smooth, value: choice)
+        .animation(.calm, value: choice)
         .onChange(of: choice) { AppIcon.apply() }
     }
 

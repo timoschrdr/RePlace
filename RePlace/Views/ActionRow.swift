@@ -25,6 +25,6 @@ struct ActionRow: View {
             .disabled(!model.canReset)
             .keyboardShortcut("r", modifiers: .command)
         }
-        .animation(.smooth, value: model.primaryAction)
+        .animation(.calm, value: model.primaryAction)
     }
 }
